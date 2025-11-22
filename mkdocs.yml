@@ -1,0 +1,28 @@
+site_name: dmeth Documentation
+site_description: "dmeth: A toolkit for transparent, reproducible DNA methylation analysis"
+site_author: Dare Afolabi
+repo_url: https://github.com/dare-afolabi/dmeth
+repo_name: GitHub
+
+nav:
+  - User Guide: UserGuide.md
+
+docs_dir: ../docs
+
+site_dir: ../site
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - content.code.copy
+    - content.code.annotate
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - toc:
+      permalink: true
+  - footnotes
+  - tables
+  - attr_list

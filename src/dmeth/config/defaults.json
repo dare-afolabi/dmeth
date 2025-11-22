@@ -1,0 +1,209 @@
+{
+    "platforms": {
+        "27K": {
+            "name": "HumanMethylation27",
+            "manufacturer": "Illumina",
+            "n_cpgs": 27578,
+            "cost_per_sample": 250,
+            "processing_days": 5,
+            "dna_required_ng": 500,
+            "coverage": "Gene promoters",
+            "release_year": 2008,
+            "status": "Discontinued",
+            "recommended": false
+        },
+        "450K": {
+            "name": "HumanMethylation450",
+            "manufacturer": "Illumina",
+            "n_cpgs": 485512,
+            "cost_per_sample": 400,
+            "processing_days": 7,
+            "dna_required_ng": 500,
+            "coverage": "Genome-wide",
+            "release_year": 2011,
+            "status": "Mature",
+            "recommended": true
+        },
+        "EPIC": {
+            "name": "MethylationEPIC",
+            "manufacturer": "Illumina",
+            "n_cpgs": 866895,
+            "cost_per_sample": 500,
+            "processing_days": 7,
+            "dna_required_ng": 500,
+            "coverage": "Enhanced genome-wide",
+            "release_year": 2016,
+            "status": "Current standard",
+            "recommended": true
+        },
+        "scEPIC": {
+            "name": "Single-Cell Methylation EPIC",
+            "manufacturer": "Illumina / Adapted",
+            "n_cpgs": 866895,
+            "cost_per_sample": 1200,
+            "processing_days": 10,
+            "dna_required_ng": 50,
+            "coverage": "Single-cell enhanced genome-wide",
+            "release_year": 2021,
+            "status": "Emerging",
+            "recommended": false
+        },
+        "nanoSeq": {
+            "name": "Nanopore Methylation Sequencing",
+            "manufacturer": "Oxford Nanopore",
+            "n_cpgs": 30000000,
+            "cost_per_sample": 1500,
+            "processing_days": 5,
+            "dna_required_ng": 1000,
+            "coverage": "Whole genome",
+            "release_year": 2020,
+            "status": "Current standard",
+            "recommended": true
+        }
+    },
+    "designs": {
+        "two_group": {
+            "name": "Two-Group Comparison",
+            "description": "Compare two independent groups",
+            "n_groups": 2,
+            "paired": false,
+            "complexity": "Simple",
+            "min_n_recommended": 12,
+            "power_adjustment": 1.0,
+            "analysis_method": "Two-sample t-test / Linear model",
+            "example_uses": ["Tumor vs Normal", "Treatment vs Control"]
+        },
+        "paired": {
+            "name": "Paired Design",
+            "description": "Compare matched samples",
+            "n_groups": 2,
+            "paired": true,
+            "complexity": "Simple",
+            "min_n_recommended": 10,
+            "power_adjustment": 0.71,
+            "analysis_method": "Paired t-test / Linear mixed model",
+            "example_uses": ["Pre-treatment vs Post-treatment", "Matched tumor-normal"]
+        },
+        "factorial": {
+            "name": "Factorial / Multi-group Design",
+            "description": "Compare more than two groups or multiple factors",
+            "n_groups": 3,
+            "paired": false,
+            "complexity": "Intermediate",
+            "min_n_recommended": 8,
+            "power_adjustment": 0.8,
+            "analysis_method": "ANOVA / Linear model",
+            "example_uses": ["Dose-response studies", "Multi-arm trials"]
+        }
+    },
+    "cost_components": {
+        "dna_extraction": {
+            "cost": 50,
+            "unit": "per_sample",
+            "description": "Genomic DNA extraction from tissue or cells",
+            "optional": false,
+            "applies_to": ["all"]
+        },
+        "quality_control": {
+            "cost": 30,
+            "unit": "per_sample",
+            "description": "QC of DNA or libraries",
+            "optional": false,
+            "applies_to": ["all"]
+        },
+        "bioinformatics": {
+            "cost": 100,
+            "unit": "per_sample",
+            "description": "Data preprocessing, normalization, and analysis",
+            "optional": false,
+            "applies_to": ["all"]
+        },
+        "storage": {
+            "cost": 0.000001,
+            "unit": "per_cpg",
+            "description": "Cloud or local data storage",
+            "optional": true,
+            "applies_to": null
+        },
+        "library_prep": {
+            "cost": 200,
+            "unit": "per_sample",
+            "description": "Library preparation for sequencing-based assays",
+            "optional": true,
+            "applies_to": ["nanoSeq", "scEPIC"]
+        },
+        "shipping": {
+            "cost": 20,
+            "unit": "per_sample",
+            "description": "Sample transport",
+            "optional": true,
+            "applies_to": ["all"]
+        }
+    },
+    "timeline_phases": {
+        "planning_irb": {
+            "name": "IRB and Study Planning",
+            "base_duration_days": 30,
+            "scaling_factor": 0.0,
+            "batch_adjustment": 0.0,
+            "description": "Institutional approval and study design",
+            "critical": true,
+            "optional": false,
+            "parallelizable": false
+        },
+        "sample_collection": {
+            "name": "Sample Collection",
+            "base_duration_days": 14,
+            "description": "Collection of tissue or cell samples",
+            "critical": true,
+            "optional": false,
+            "parallelizable": false
+        },
+        "dna_extraction": {
+            "name": "DNA Extraction",
+            "base_duration_days": 5,
+            "critical": false,
+            "optional": false,
+            "parallelizable": true
+        },
+        "library_prep": {
+            "name": "Library Preparation",
+            "base_duration_days": 3,
+            "critical": false,
+            "optional": true,
+            "parallelizable": true
+        },
+        "array_processing": {
+            "name": "Array Processing",
+            "base_duration_days": 7,
+            "critical": false,
+            "optional": false,
+            "parallelizable": true
+        },
+        "sequencing": {
+            "name": "Sequencing Run",
+            "base_duration_days": 2,
+            "critical": false,
+            "optional": true,
+            "parallelizable": true
+        },
+        "analysis": {
+            "name": "Data Analysis",
+            "base_duration_days": 14,
+            "critical": true,
+            "optional": false,
+            "parallelizable": false
+        },
+        "reporting": {
+            "name": "Reporting / Submission",
+            "base_duration_days": 7,
+            "critical": false,
+            "optional": true,
+            "parallelizable": false
+        }
+    },
+    "global_settings": {
+        "contingency_buffer_percent": 15,
+        "default_mcp_method": "bonferroni"
+    }
+}

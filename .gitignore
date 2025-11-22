@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+*.log
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# Build artifacts
+build/
+dist/
+*.whl
+
+# Coverage and test
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
+coverage/
+
+# IDE/editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# MkDocs site output
+site/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Jupyter notebooks checkpoints
+.ipynb_checkpoints/
+
+# Generated docs
+output/
+logs/
+log/
+outputs/

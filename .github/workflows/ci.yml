@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  lint-and-security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install linters
+        run: |
+          pip install pyflakes isort black flake8 bandit
+      - name: Run pyflakes
+        run: pyflakes src tests scripts
+      - name: Run isort
+        run: isort --check-only --diff src tests scripts
+      - name: Run black
+        run: black --check src tests scripts
+      - name: Run flake8
+        run: flake8 src tests scripts
+      - name: Run bandit
+        run: bandit -r src/dmeth
+
+  test-and-docs:
+    runs-on: ubuntu-latest
+    needs:
+      - lint-and-security
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install project with extras
+        run: pip install -e ".[full,dev]"
+      - name: Run tests with coverage
+        run: pytest --cov=src --cov-report=xml --cov-report=term-missing
+      - name: Generate user guide
+        run: python scripts/generate_user_guide.py
+      - name: Build docs with MkDocs
+        run: mkdocs build -f scripts/mkdocs.yml
+
+  release:
+    runs-on: ubuntu-latest
+    needs:
+      - test-and-docs
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install build tools
+        run: pip install build twine
+      - name: Update changelog
+        run: python scripts/update_changelog.py
+      - name: Extract version, commit, and tag
+        id: version
+        run: |
+          VERSION=$(grep -Po '(?<=version = ")[^"]+' pyproject.toml)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md
+          git commit -m "chore: release $VERSION" || echo "No changes to commit"
+          git tag -a "v$VERSION" -m "Release $VERSION" || echo "Tag already exists"
+          git push origin "v$VERSION" || echo "Tag push skipped"
+      - name: Build package
+        run: python -m build
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.8.8
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: Release ${{ env.VERSION }}
+          generate_release_notes: true
