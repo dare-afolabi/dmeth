@@ -10,7 +10,7 @@
   <a href="https://badge.fury.io/py/dmeth">
     <img src="https://badge.fury.io/py/dmeth.svg" alt="PyPI version">
   </a>
-  <a href="https://github.com/sponsors/dmeth">
+  <a href="https://github.com/sponsors/dare-afolabi">
     <img src="https://img.shields.io/badge/Sponsor-grey?style=flat&logo=github-sponsors" alt="Sponsor">
   </a>
 </div>
@@ -127,11 +127,11 @@ If you use `dmeth` in your research, please cite:
 @software{dmeth2025,
   author = {Afolabi, Dare},
   title = {dmeth: A comprehensive Python toolkit for differential DNA methylation analysis with empirical Bayes moderation and biomarker discovery},
-  version = {0.1.0},
+  version = {0.1.1},
   year = {2025},
   publisher = {GitHub},
   url = {https://github.com/dare-afolabi/dmeth},
-  doi = {10.5281/zenodo.XXXXXXX},  # will be assigned upon release
+  doi = {10.5281/zenodo.17684038},
 }
 ```
 

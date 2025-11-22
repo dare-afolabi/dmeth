@@ -12,7 +12,7 @@
   <a href="https://badge.fury.io/py/dmeth">
     <img src="https://badge.fury.io/py/dmeth.svg" alt="PyPI version">
   </a>
-  <a href="https://github.com/sponsors/dmeth">
+  <a href="https://github.com/sponsors/dare-afolabi">
     <img src="https://img.shields.io/badge/Sponsor-grey?style=flat&logo=github-sponsors" alt="Sponsor">
   </a>
 </div>
@@ -1536,7 +1536,7 @@ This lightweight module contains essential helper functions used across the DMet
 
 ---
 
-`summarize_groups(beta: DataFrame, groups: pandas.core.series.Series, summary_func: Callable = <function mean at 0x13d497bb0>) -> DataFrame`
+`summarize_groups(beta: DataFrame, groups: pandas.core.series.Series, summary_func: Callable = <function mean at 0x10a87f5ec730>) -> DataFrame`
 
 
 Compute group-wise summary statistics (mean and variance) across samples     for a beta-value matrix.
@@ -1695,7 +1695,7 @@ Planner configuration manager for DNA methylation studies.
 
 ---
 
-`CostComponentSchema(*, cost: pydantic.types.ConstrainedFloatValue, unit: pydantic.types.ConstrainedStrValue, description: Optional[str] = None, optional: bool = False, applies_to: Optional[List[str]] = None) -> None`
+`CostComponentSchema(*, cost: Annotated[float, Ge(ge=0)], unit: Annotated[str, _PydanticGeneralMetadata(pattern='^(per_sample|per_cpg|fixed)$')], description: Optional[str] = None, optional: bool = False, applies_to: Optional[List[str]] = None) -> None`
 
 
 _No docstring provided._
@@ -1703,7 +1703,7 @@ _No docstring provided._
 
 ---
 
-`DesignSchema(*, name: str, description: Optional[str] = None, n_groups: pydantic.types.ConstrainedIntValue, paired: bool = False, complexity: Optional[str] = None, min_n_recommended: pydantic.types.ConstrainedIntValue, power_adjustment: pydantic.types.ConstrainedFloatValue, analysis_method: Optional[str] = None, example_uses: Optional[List[str]] = None) -> None`
+`DesignSchema(*, name: str, description: Optional[str] = None, n_groups: Annotated[int, Ge(ge=1)], paired: bool = False, complexity: Optional[str] = None, min_n_recommended: Annotated[int, Ge(ge=1)], power_adjustment: Annotated[float, Gt(gt=0)], analysis_method: Optional[str] = None, example_uses: Optional[List[str]] = None) -> None`
 
 
 _No docstring provided._
@@ -1711,7 +1711,7 @@ _No docstring provided._
 
 ---
 
-`GlobalSettingsSchema(*, contingency_buffer_percent: pydantic.types.ConstrainedFloatValue = 10.0, default_mcp_method: pydantic.types.ConstrainedStrValue = 'fdr') -> None`
+`GlobalSettingsSchema(*, contingency_buffer_percent: Annotated[float, Ge(ge=0.0), Le(le=100.0)] = 10.0, default_mcp_method: Annotated[str, _PydanticGeneralMetadata(pattern='^(bonferroni|fdr|none)$')] = 'fdr') -> None`
 
 
 _No docstring provided._
@@ -1743,7 +1743,7 @@ _No docstring provided._
 
 ---
 
-`PlatformSchema(*, name: str, manufacturer: Optional[str] = None, n_cpgs: pydantic.types.ConstrainedIntValue, cost_per_sample: pydantic.types.ConstrainedFloatValue, processing_days: pydantic.types.ConstrainedIntValue, dna_required_ng: Optional[float] = None, coverage: Optional[str] = None, release_year: Optional[int] = None, status: Optional[str] = None, recommended: bool = False, notes: Optional[str] = None) -> None`
+`PlatformSchema(*, name: str, manufacturer: Optional[str] = None, n_cpgs: Annotated[int, Ge(ge=1)], cost_per_sample: Annotated[float, Ge(ge=0)], processing_days: Annotated[int, Ge(ge=0)], dna_required_ng: Optional[float] = None, coverage: Optional[str] = None, release_year: Optional[int] = None, status: Optional[str] = None, recommended: bool = False, notes: Optional[str] = None) -> None`
 
 
 _No docstring provided._
@@ -1751,7 +1751,7 @@ _No docstring provided._
 
 ---
 
-`TimelinePhaseSchema(*, name: Optional[str] = None, base_duration_days: pydantic.types.ConstrainedFloatValue, scaling_factor: Optional[float] = 0.0, batch_adjustment: Optional[float] = 0.0, description: Optional[str] = None, critical: bool = False, optional: bool = False, parallelizable: bool = False) -> None`
+`TimelinePhaseSchema(*, name: Optional[str] = None, base_duration_days: Annotated[float, Gt(gt=0)], scaling_factor: Optional[float] = 0.0, batch_adjustment: Optional[float] = 0.0, description: Optional[str] = None, critical: bool = False, optional: bool = False, parallelizable: bool = False) -> None`
 
 
 _No docstring provided._
@@ -2656,11 +2656,11 @@ If you use `dmeth` in your research, please cite:
 @software{dmeth2025,
   author = {Afolabi, Dare},
   title = {dmeth: A comprehensive Python toolkit for differential DNA methylation analysis with empirical Bayes moderation and biomarker discovery},
-  version = {0.1.0},
+  version = {0.1.1},
   year = {2025},
   publisher = {GitHub},
   url = {https://github.com/dare-afolabi/dmeth},
-  doi = {10.5281/zenodo.XXXXXXX},  # will be assigned upon release
+  doi = {10.5281/zenodo.17684038},
 }
 ```
 
@@ -2681,7 +2681,6 @@ If you use `dmeth` in your research, please cite:
 
 
 
-
 ---
 
-> **Auto-generated** on 2025-11-22 11:30:04
+> **Auto-generated** on 2025-11-22 21:20:22

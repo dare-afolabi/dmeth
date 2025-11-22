@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dmeth"
-version = "0.1.0"
+version = "0.1.1"
 description = "dmeth: A toolkit for comprehensive, transparent, and reproducible DNA methylation analysis"
 authors = [
     { name = "Dare Afolabi", email = "dare.afolabi@outlook.com" }
