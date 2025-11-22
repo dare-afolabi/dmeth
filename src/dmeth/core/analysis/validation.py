@@ -142,12 +142,12 @@ def validate_design(design: Sequence) -> pd.DataFrame:
     if s.isna().any():
         raise ValueError("`design` contains NaN or missing values.")
     if len(s) < 2:
-        raise ValueError(f"`design` must contain ≥2 samples (got {len(s)}).")
+        raise ValueError(f"design must contain ≥2 samples (got {len(s)})")
 
     uniq = s.unique()
     if len(uniq) != 2:
         raise ValueError(
-            f"design must contain exactly two groups (got {len(uniq)}: {uniq.tolist()})"
+            f"design must have exactly two groups (got {len(uniq)}: {uniq.tolist()})"
         )
 
     ref = uniq[0]

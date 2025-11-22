@@ -162,6 +162,7 @@ def save_processed_data(
     FileExistsError
         When ``overwrite=False`` and the target exists.
     """
+    ann = data.ann if data.ann is not None else pd.DataFrame(index=data.M.index)
 
     path = Path(path)
     fmt = format.lower()
@@ -192,15 +193,15 @@ def save_processed_data(
     if fmt == "csv":
         data.M.to_csv(path)
         data.pheno.to_csv(path.with_name(f"{path.stem}_pheno.csv"))
-        if data.ann is not None:
-            data.ann.to_csv(path.with_name(f"{path.stem}_ann.csv"))
+        if ann is not None:
+            ann.to_csv(path.with_name(f"{path.stem}_ann.csv"))
 
     elif fmt == "tsv":
         sep = "\t"
         data.M.to_csv(path, sep=sep)
         data.pheno.to_csv(path.with_name(f"{path.stem}_pheno.tsv"), sep=sep)
-        if data.ann is not None:
-            data.ann.to_csv(path.with_name(f"{path.stem}_ann.tsv"), sep=sep)
+        if ann is not None:
+            ann.to_csv(path.with_name(f"{path.stem}_ann.tsv"), sep=sep)
 
     elif fmt == "xlsx":
         try:
@@ -210,15 +211,15 @@ def save_processed_data(
                 with pd.ExcelWriter(path, engine="xlsxwriter") as writer:
                     data.M.to_excel(writer, sheet_name="M")
                     data.pheno.to_excel(writer, sheet_name="pheno")
-                    if data.ann is not None:
-                        data.ann.to_excel(writer, sheet_name="ann")
+                    if ann is not None:
+                        ann.to_excel(writer, sheet_name="ann")
             except ImportError:
                 logger.warning("xlsxwriter not available; falling back to openpyxl")
                 with pd.ExcelWriter(path, engine="openpyxl") as writer:
                     data.M.to_excel(writer, sheet_name="M")
                     data.pheno.to_excel(writer, sheet_name="pheno")
-                    if data.ann is not None:
-                        data.ann.to_excel(writer, sheet_name="ann")
+                    if ann is not None:
+                        ann.to_excel(writer, sheet_name="ann")
         except Exception as e:
             logger.error(f"Excel save failed: {e}")
             raise RuntimeError(f"Export failed: {e}")
@@ -236,10 +237,8 @@ def save_processed_data(
             store.put(
                 "pheno", data.pheno, format="table", data_columns=True, **comp_kwargs
             )
-            if data.ann is not None:
-                store.put(
-                    "ann", data.ann, format="table", data_columns=True, **comp_kwargs
-                )
+            if ann is not None:
+                store.put("ann", ann, format="table", data_columns=True, **comp_kwargs)
 
 
 def _check_overwrite(path: Path, overwrite: bool) -> None:

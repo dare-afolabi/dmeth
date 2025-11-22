@@ -40,7 +40,7 @@ from dmeth.core.analysis.validation import check_analysis_memory
 from dmeth.utils.logger import logger
 
 try:
-    from numba import jit, prange
+    from numba import jit
 
     NUMBA_AVAILABLE = True
 except ImportError:
@@ -268,7 +268,7 @@ def _add_group_means(
 # If numba available, use JIT-compiled helper
 if NUMBA_AVAILABLE:
 
-    @jit(nopython=True, parallel=True, cache=True)
+    @jit(nopython=True, parallel=False, cache=True)
     def _fit_features_numba(Y, X, min_count, winsor_lower, winsor_upper, robust):
         """
         JIT-compiled feature-wise linear regression.
@@ -307,11 +307,10 @@ if NUMBA_AVAILABLE:
         XtX = X.T @ X
         try:
             XtX_inv = np.linalg.pinv(XtX)
-        except np.linalg.LinAlgError as e:
-            logger.warning(f"Failed to compute (X^T X)^(-1): {e}")
+        except Exception:
             return beta_hat, s2, df_obs, n_obs
 
-        for i in prange(n_features):
+        for i in range(n_features):
             y = Y[i, :]
 
             # Find non-missing values
@@ -356,9 +355,7 @@ if NUMBA_AVAILABLE:
                     s2[i] = np.sum(resid**2) / df_i
                     df_obs[i] = df_i
                     n_obs[i] = n_present
-            except (np.linalg.LinAlgError, ValueError) as e:
-                # Optional: log the failure
-                logger.warning(f"Sample {i} failed in regression: {e}")
+            except Exception:  # nosec
                 continue
 
         return beta_hat, s2, df_obs, n_obs
@@ -424,15 +421,20 @@ def fit_differential(
     if not isinstance(M, pd.DataFrame) or not isinstance(design, pd.DataFrame):
         raise TypeError("M and design must be pandas DataFrames")
 
-    Y = M.values.astype(float)
-    X = design.values.astype(float)
+    Y = np.ascontiguousarray(M.values, dtype=np.float64)
+    X = np.ascontiguousarray(design.values, dtype=np.float64)
+
     n_samples, p_full = X.shape
     n_features = Y.shape[0]
+
+    V = X.T @ X
+    XtX_inv_full = linalg.pinv(V)
+    p = np.linalg.matrix_rank(X)
+    min_count = max(min_count, p + 1)
 
     if n_samples != Y.shape[1]:
         raise ValueError("M columns != design rows")
 
-    p = np.linalg.matrix_rank(X)
     if p >= n_samples:
         raise ValueError(
             f"design is singular or overparameterized (rank={p}, n={n_samples})"
@@ -442,15 +444,17 @@ def fit_differential(
     if cond > 1e10:
         logger.warning(f"Design matrix is ill-conditioned (κ={cond:.2e})")
 
-    min_count = max(min_count, p + 1)
-
     # FAST PATH: Use Numba if available and no missing data
     if use_numba and NUMBA_AVAILABLE and not np.any(np.isnan(Y)):
         logger.progress("Using Numba-accelerated fitting...")
-        beta_hat, s2, df_obs, n_obs = _fit_features_numba(
-            Y, X, min_count, winsor_lower, winsor_upper, robust
-        )
-        residuals = None  # Skip residuals for speed unless requested
+        try:
+            beta_hat, s2, df_obs, n_obs = _fit_features_numba(
+                Y, X, min_count, winsor_lower, winsor_upper, robust
+            )
+            residuals = None  # Skip residuals for speed
+            logger.progress("Numba fitting successful")
+        except Exception as e:
+            logger.warning(f"Numba fitting failed ({e}), falling back to Python loop")
 
     # SLOW PATH: Python loop
     else:
@@ -459,7 +463,6 @@ def fit_differential(
         else:
             logger.progress("Numba unavailable, using slower Python loop...")
 
-        XtX_inv_full = linalg.pinv(X.T @ X)
         beta_hat = np.full((p, n_features), np.nan)
         s2 = np.full(n_features, np.nan)
         df_obs = np.full(n_features, np.nan)

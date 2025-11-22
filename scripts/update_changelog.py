@@ -13,8 +13,8 @@ Update CHANGELOG.md with commits since the last tag.
 
 import re
 import subprocess
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 
 def get_version() -> str:

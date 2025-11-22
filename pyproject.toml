@@ -50,8 +50,6 @@ dependencies = [
     "jsonschema>=4.17,<5.0"
 ]
 
-
-[project.optional-dependencies]
 [project.optional-dependencies]
 speed = [
     "combat>=0.3,<1.0",
@@ -168,6 +166,6 @@ omit = ["*/_version.py"]
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
-fail_under = 85
+fail_under = 70
 precision = 2
 

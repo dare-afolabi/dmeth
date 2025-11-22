@@ -18,6 +18,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+import dmeth.core.analysis.core_analysis  # noqa: F401
 from dmeth.core.analysis import validation
 from dmeth.core.analysis.core_analysis import (
     _add_group_means,
@@ -537,7 +538,7 @@ class TestAnalysisValidation:
     def test_validate_design_invalid(self):
         with pytest.raises(
             ValueError,
-            match=re.escape("`design` must contain exactly two groups (got 1: ['A'])."),
+            match=re.escape("design must have exactly two groups (got 1: ['A'])"),
         ):
             validate_design(["A", "A", "A"])
 

@@ -147,6 +147,8 @@ def _read(
         # safer HDF access: prefer '/M' or 'M', otherwise require explicit choice
         with pd.HDFStore(path, "r") as store:
             keys = [k for k in store.keys()]
+            if len(keys) > 1:
+                raise ValueError("multiple keys found in HDF5 file")
             # normalize keys (strip leading '/')
             norm_keys = [k.lstrip("/") for k in keys]
             if "/M" in keys or "M" in norm_keys:
@@ -243,11 +245,14 @@ def load_methylation_data(
     # Read annotation (if provided).
     # If not provided, keep ann = None so alignment check skips.
     if ann_input is None:
-        ann = None
+        # normalize to empty DataFrame with probe index
+        ann = pd.DataFrame(index=M.index)
     elif isinstance(ann_input, (str, Path)):
-        ann = _read(Path(ann_input), index_col=0)
-    else:
+        ann = pd.read_csv(ann_input, index_col=index_col_probe)
+    elif isinstance(ann_input, pd.DataFrame):
         ann = ann_input.copy()
+    else:
+        raise TypeError("ann_input must be None, path, or DataFrame")
 
     data = ProcessedData(M=M, pheno=pheno, ann=ann)
     logger.info(f"Loaded {data.M.shape[1]} samples, {data.M.shape[0]} CpGs.")

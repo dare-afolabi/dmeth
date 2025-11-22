@@ -7,9 +7,9 @@ repo_name: GitHub
 nav:
   - User Guide: UserGuide.md
 
-docs_dir: ../docs
+docs_dir: docs
 
-site_dir: ../site
+site_dir: site
 
 theme:
   name: material

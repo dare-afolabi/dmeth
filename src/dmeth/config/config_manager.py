@@ -89,7 +89,7 @@ class DesignSchema(BaseModel):
 
 class CostComponentSchema(BaseModel):
     cost: float = Field(..., ge=0.0)
-    unit: str = Field(..., regex="^(per_sample|per_cpg|fixed)$")
+    unit: str = Field(..., pattern="^(per_sample|per_cpg|fixed)$")
     description: Optional[str] = None
     optional: bool = False
     applies_to: Optional[List[str]] = None
@@ -108,7 +108,7 @@ class TimelinePhaseSchema(BaseModel):
 
 class GlobalSettingsSchema(BaseModel):
     contingency_buffer_percent: float = Field(10.0, ge=0.0, le=100.0)
-    default_mcp_method: str = Field("fdr", regex="^(bonferroni|fdr|none)$")
+    default_mcp_method: str = Field("fdr", pattern="^(bonferroni|fdr|none)$")
 
 
 class PlannerConfigModel(BaseModel):

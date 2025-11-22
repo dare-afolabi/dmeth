@@ -1,11 +1,6 @@
 # `dmeth`: Differential Methylation Analysis Toolkit
 
-A fast, statistically rigorous Python framework providing a toolkit for DNA methylation analysis - from raw beta matrices to biomarkers and functional interpretation.
-
 <div align="center">
-  <a href="https://github.com/dare-afolabi/dmeth/actions/workflows/ci.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/dare-afolabi/dmeth/ci.yml?branch=main&style=flat" alt="Build Status">
-  </a>
   <a href="https://codecov.io/gh/dare-afolabi/dmeth">
     <img src="https://img.shields.io/codecov/c/github/dare-afolabi/dmeth?style=flat" alt="Coverage">
   </a>
@@ -20,7 +15,8 @@ A fast, statistically rigorous Python framework providing a toolkit for DNA meth
   </a>
 </div>
 
-**`dmeth`** implements the full modern differential methylation pipeline used in high-impact epigenome-wide association studies (EWAS), with performance and correctness on par with established R/bioconductor tools, all in pure Python.
+
+A fast, statistically rigorous Python framework providing a toolkit for DNA methylation analysis - from raw beta matrices to biomarkers and functional interpretation. **`dmeth`** implements the full modern differential methylation pipeline used in high-impact epigenome-wide association studies (EWAS), with performance and correctness on par with established R/bioconductor tools, all in pure Python.
 
 ## Key Features
 
