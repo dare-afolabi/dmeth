@@ -2660,7 +2660,7 @@ If you use `dmeth` in your research, please cite:
   year = {2025},
   publisher = {GitHub},
   url = {https://github.com/dare-afolabi/dmeth},
-  doi = {10.5281/zenodo.17684038},
+  doi = {10.5281/zenodo.17684037},
 }
 ```
 
