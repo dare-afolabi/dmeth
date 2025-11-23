@@ -284,10 +284,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
+  <a href="#key-features" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Installation
+        Key Features
       
     </span>
   </a>
@@ -395,10 +395,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
+  <a href="#key-features" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Installation
+        Key Features
       
     </span>
   </a>
@@ -481,28 +481,59 @@
 </div>
 
 <p>A fast, statistically rigorous Python framework providing a toolkit for DNA methylation analysis - from raw beta matrices to biomarkers and functional interpretation. <strong><code>dmeth</code></strong> implements the full modern differential methylation pipeline used in high-impact epigenome-wide association studies (EWAS), with performance and correctness on par with established R/bioconductor tools, all in pure Python.</p>
-<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
-<div class="codehilite"><pre><span></span><code><span class="c1"># Minimal (no speed, annotation, and other extras)</span>
-pip<span class="w"> </span>install<span class="w"> </span>dmeth
-
-<span class="c1"># Recommended: full scientific environment</span>
-pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;dmeth[full]&quot;</span>
-
-<span class="c1"># Development</span>
-pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;dmeth[full,dev]&quot;</span>
-</code></pre></div>
-
-<p>Optional extras (dmeth[full]):</p>
-<ul>
-<li><strong>speed</strong>: numba, combat (highly recommended)</li>
-<li><strong>annotation</strong>: intervaltree, pyliftover</li>
-<li><strong>parallel</strong>: joblib</li>
-<li><strong>format</strong>: PyYAML, toml, h5py, xlrd</li>
-<li><strong>plotting</strong>: plotly, umap-learn</li>
-<li><strong>io</strong>: pyarrow, tables, openpyxl, xlsxwriter</li>
-</ul>
-<p>Optional dev extras (dmeth[dev]):</p>
-<p>pytest, pytest-cov, black, isort, flake8, flake8-pyproject, flake8-bugbear, bandit, mypy, mkdocs, mkdocs-material</p>
+<h2 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Implementation</th>
+<th>Performance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Empirical Bayes moderated t-tests</td>
+<td>limma-style (Smyth 2004) with exact replication</td>
+<td>Numba-accelerated (10–100× faster)</td>
+</tr>
+<tr>
+<td>Memory-efficient chunked analysis</td>
+<td>Automatic fallback for &gt;1M probes</td>
+<td>&lt;4 GB RAM typical</td>
+</tr>
+<tr>
+<td>Cell-type deconvolution</td>
+<td>Reference-based NNLS (Houseman/Horvath-style)</td>
+<td>Parallel joblib</td>
+</tr>
+<tr>
+<td>DMR discovery</td>
+<td>Sliding-window clustering + gap merging</td>
+<td>Vectorized</td>
+</tr>
+<tr>
+<td>Gene annotation &amp; pathway enrichment</td>
+<td>IntervalTree + Fisher’s exact (FDR)</td>
+<td>Sub-second on 450k/EPIC</td>
+</tr>
+<tr>
+<td>Coordinate liftover (hg19 ↔ hg38)</td>
+<td>pyliftover integration</td>
+<td>Per-region tracking</td>
+</tr>
+<tr>
+<td>Biomarker panel discovery &amp; validation</td>
+<td>RF / Elastic Net + stratified CV</td>
+<td>Built-in</td>
+</tr>
+<tr>
+<td>Robust preprocessing &amp; QC</td>
+<td>Missingness, group representation, imputation</td>
+<td>Production-safe</td>
+</tr>
+</tbody>
+</table>
+<p>Fully supports <strong>Illumina 450K</strong>, <strong>EPIC (850K)</strong>, and any custom CpG × sample matrix.</p>
 <h2 id="citation">Citation<a class="headerlink" href="#citation" title="Permanent link">&para;</a></h2>
 <p>If you use <code>dmeth</code> in your research, please cite:</p>
 <div class="codehilite"><pre><span></span><code><span class="nc">@software</span><span class="p">{</span><span class="nl">dmeth2025</span><span class="p">,</span>
@@ -512,7 +543,7 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot
 <span class="w">  </span><span class="na">year</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{2025}</span><span class="p">,</span>
 <span class="w">  </span><span class="na">publisher</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{GitHub}</span><span class="p">,</span>
 <span class="w">  </span><span class="na">url</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{https://github.com/dare-afolabi/dmeth}</span><span class="p">,</span>
-<span class="w">  </span><span class="na">doi</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{10.5281/zenodo.17684038}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">doi</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{10.5281/zenodo.17684037}</span><span class="p">,</span>
 <span class="p">}</span>
 </code></pre></div>
 
