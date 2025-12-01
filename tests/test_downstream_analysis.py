@@ -20,10 +20,10 @@ import pytest
 
 from dmeth.core.downstream import annotation, deconvolution
 from dmeth.core.downstream.annotation import (
-    annotate_dms_with_genes,
     correlate_methylation_expression,
     gene_set_enrichment,
     liftover_coordinates,
+    map_dms_to_genes,
     pathway_methylation_scores,
 )
 from dmeth.core.downstream.deconvolution import estimate_cell_composition
@@ -48,7 +48,7 @@ from dmeth.core.downstream.signature import (
 class TestDownstreamAnnotation:
     """Test downstream annotation functions"""
 
-    def test_annotate_dms_with_genes(self):
+    def test_map_dms_to_genes(self):
         dms = pd.DataFrame(
             {"chr": ["chr1", "chr2"], "pos": [1000, 2000]},
             index=["CpG1", "CpG2"],
@@ -62,7 +62,7 @@ class TestDownstreamAnnotation:
             }
         )
 
-        result = annotate_dms_with_genes(dms, genes)
+        result = map_dms_to_genes(dms, genes)
 
         assert "nearest_gene" in result.columns
         assert not result["nearest_gene"].isna().all()
@@ -129,7 +129,7 @@ class TestDownstreamAnnotation:
     def test_annotate_empty_dms_or_genes(self):
         dms = pd.DataFrame()
         genes = pd.DataFrame()
-        assert annotate_dms_with_genes(dms, genes).empty
+        assert map_dms_to_genes(dms, genes).empty
 
     def test_annotate_intervaltree_missing(self, monkeypatch):
         monkeypatch.setattr(annotation, "IntervalTree", None)
@@ -137,7 +137,7 @@ class TestDownstreamAnnotation:
         genes = pd.DataFrame(
             {"chr": ["chr1"], "start": [50], "end": [150], "gene_symbol": ["G1"]}
         )
-        res = annotate_dms_with_genes(dms, genes)
+        res = map_dms_to_genes(dms, genes)
         assert "nearest_gene" in res.columns
 
     def test_gene_set_enrichment_empty_list(self):
@@ -158,7 +158,7 @@ class TestDownstreamAnnotation:
 
     def test_annotate_empty_genes(self):
         dms = pd.DataFrame({"chr": ["chr1"], "pos": [100]})
-        res = annotate_dms_with_genes(dms, pd.DataFrame())
+        res = map_dms_to_genes(dms, pd.DataFrame())
         assert res["nearest_gene"].isna().all()
 
     def test_gene_set_enrichment_no_results(self):
@@ -172,7 +172,7 @@ class TestDownstreamAnnotation:
 
     def test_annotation_empty_genes(self):
         dms = pd.DataFrame({"chr": ["chr1"], "pos": [100]})
-        res = annotate_dms_with_genes(dms, pd.DataFrame())
+        res = map_dms_to_genes(dms, pd.DataFrame())
         assert res["nearest_gene"].isna().all()
 
     def test_annotation_distance_fallback(self, monkeypatch):
@@ -181,7 +181,7 @@ class TestDownstreamAnnotation:
         genes = pd.DataFrame(
             {"chr": ["chr1"], "start": [100], "end": [150], "gene_symbol": ["G1"]}
         )
-        res = annotate_dms_with_genes(dms, genes, max_distance=100)
+        res = map_dms_to_genes(dms, genes, max_distance=100)
         assert "nearest_gene" in res.columns
 
     def test_gene_set_enrichment_filtered_out(self):
@@ -568,4 +568,6 @@ class TestDeconvolution:
         beta = pd.DataFrame([[0.1, 0.2]], index=["cg1"], columns=["S1", "S2"])
         ref = pd.DataFrame([[0.1]], index=["cg1"], columns=["T1"])
         res = estimate_cell_composition(beta, ref, n_jobs=2)
+        assert "T1" in res.columns
+beta, ref, n_jobs=2)
         assert "T1" in res.columns

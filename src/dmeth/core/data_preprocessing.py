@@ -88,6 +88,11 @@ def qc_sample_level(
         "removed": len(flagged) if remove_samples else 0,
     }
 
+    logger.info(
+        f"Sample level QC: threshold={max_missing_fraction}, flagged="
+        f"{len(flagged)}, removed={len(flagged) if remove_samples else 0}"
+    )
+
     if remove_samples and flagged:
         keep = [c for c in data.M.columns if c not in flagged]
         data.M = data.M.loc[:, keep]
@@ -155,6 +160,11 @@ def qc_cpg_level(
         "flagged": len(flagged),
     }
 
+    logger.info(
+        f"CpG level QC:threshold={max_missing_fraction}, sex_chr_dropped="
+        f"{drop_sex_chr}, flagged={len(flagged)}"
+    )
+
     if flagged:
         data.M = data.M.drop(index=flagged)
         if data.ann is not None and not data.ann.empty:
@@ -215,6 +225,7 @@ def normalize_methylation(
 
     n_probes, n_samples = data.M.shape
     data.meta.setdefault("normalization", {})
+    use_memmap = False
 
     if method == "beta_quantile":
         # Work with numpy arrays for speed; use float32 to reduce memory footprint
@@ -321,6 +332,11 @@ def normalize_methylation(
         else:
             raise ValueError("convert_to must be 'm' or 'beta'")
 
+    logger.info(
+        f"Normalization: method={method}, n_probes={int(n_probes)}, n_samples="
+        f"{int(n_samples)}, memmap_used={bool(use_memmap)}"
+    )
+
     return data
 
 
@@ -384,6 +400,7 @@ def normalize_methylation_highperf(
 
     n_probes, n_samples = data.M.shape
     data.meta.setdefault("normalization", {})
+    use_memmap = False
     dtype = np.float32
 
     if method in (None, "none"):
@@ -484,6 +501,7 @@ def normalize_methylation_highperf(
         data.meta["normalization"]["memmap_used"] = bool(use_memmap)
         data.meta["normalization"]["temp_dir"] = tmpdir if use_memmap else None
         data.meta["normalization"]["n_workers"] = workers
+
     finally:
         # If memmap used we keep qnormed by reading into DataFrame above;
         # remove sorted memmap if any
@@ -521,6 +539,12 @@ def normalize_methylation_highperf(
             data.meta.setdefault("transform", {})["last"] = "m->beta"
         else:
             raise ValueError("convert_to must be 'm' or 'beta'")
+
+    logger.info(
+        f"Normalization: method={method}, memmap_threshold="
+        f"{memmap_threshold}, n_workers="
+        f"{n_workers}, sample_block={sample_block}, random_state={random_state}"
+    )
 
     return data
 
@@ -710,6 +734,12 @@ def batch_correction(
     data.meta["batch_method"] = "advanced_regression"
     data.meta.setdefault("batch_info", {})["batch_col"] = batch_col
 
+    logger.info(
+        f"Batch correction: batch_method=advanced_regression, \
+        n_samples={int(data.M.shape[1])}, \
+        n_probes={int(data.M.shape[0])}, batch_col={batch_col}"
+    )
+
     return (data, diagnostics) if return_diagnostics else data
 
 
@@ -844,6 +874,16 @@ def batch_correction_combat(
     diagnostics["n_probes"] = int(data.M.shape[0])
     diagnostics["batch_col"] = batch_col
 
+    batch_method = data.meta["batch_method"]
+    used_pycombat = diagnostics["used_pycombat"]
+    n_samples = diagnostics["n_samples"]
+    n_probes = diagnostics["n_probes"]
+    logger.info(
+        f"Batch correction - batch_method: {batch_method}, used_pycombat: \
+        {used_pycombat}, n_samples: {n_samples}, n_probes: {n_probes}, \
+        batch_col: {batch_col}"
+    )
+
     if return_diagnostics:
         return data, diagnostics
     return data
@@ -885,4 +925,7 @@ def filter_low_variance_cpgs(
     if data.ann is not None:
         data.ann = data.ann.loc[keep]
     data.meta["qc"]["low_variance_removed"] = removed
+
+    logger.info(f"low_variance_removed: {removed}")
+
     return data

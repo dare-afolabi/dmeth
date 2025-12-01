@@ -5,6 +5,7 @@ repo_url: https://github.com/dare-afolabi/dmeth
 repo_name: GitHub
 
 nav:
+  - Home: index.md
   - User Guide: UserGuide.md
 
 docs_dir: docs

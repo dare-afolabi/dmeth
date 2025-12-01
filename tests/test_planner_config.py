@@ -12,7 +12,6 @@ Covers:
 """
 
 
-import json
 import os
 import tempfile
 from pathlib import Path
@@ -20,7 +19,6 @@ from pathlib import Path
 import pytest
 
 from dmeth.config.config_manager import (
-    DEFAULT_CONFIG,
     PlannerConfig,
     _atomic_write,
     _read_python_literal,
@@ -34,13 +32,6 @@ class TestConfigManager:
 
     def setup_method(self):
         reset_config()
-
-    def test_default_config_structure(self):
-        assert "platforms" in DEFAULT_CONFIG
-        assert "designs" in DEFAULT_CONFIG
-        assert "cost_components" in DEFAULT_CONFIG
-        assert "timeline_phases" in DEFAULT_CONFIG
-        assert "global_settings" in DEFAULT_CONFIG
 
     def test_planner_config_singleton(self):
         cfg1 = PlannerConfig()
@@ -72,18 +63,9 @@ class TestConfigManager:
             f.write("not a dict")
             f.flush()
             with pytest.raises(
-                ValueError, match="Python literal file must contain a top-level dict"
+                ValueError, match="Failed to parse Python literal from .+"
             ):
                 _read_python_literal(Path(f.name))
-            os.unlink(f.name)
-
-    def test_load_json_config(self):
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
-            json.dump({"platforms": DEFAULT_CONFIG["platforms"]}, f)
-            f.flush()
-            cfg = PlannerConfig()
-            cfg.load_file(f.name)
-            assert "EPIC" in cfg.platforms
             os.unlink(f.name)
 
     def test_load_csv_config(self):
@@ -121,7 +103,7 @@ class TestConfigManager:
     def test_get_platform_valid(self):
         cfg = get_config()
         plat = cfg.get_platform("EPIC")
-        assert plat["name"] == "MethylationEPIC"
+        assert plat["name"] == "MethylationEPIC v1.0"
 
     def test_get_platform_invalid(self):
         cfg = get_config()
@@ -166,6 +148,24 @@ class TestConfigManager:
             power=0.8,
         )
         assert "n_per_group" in result
+        assert "total_samples" in result
+        assert result["n_per_group"] > 0
+
+    def test_estimate_study_timeline(self):
+        cfg = get_config()
+        df = cfg.estimate_study_timeline(n_samples=100, platform_id="EPIC")
+        assert "phase_id" in df.columns
+        assert "estimated_days" in df.columns
+        assert "TOTAL" in df["phase_id"].values
+
+    def test_estimate_total_cost(self):
+        cfg = get_config()
+        result = cfg.estimate_total_cost(n_samples=50, platform_id="EPIC")
+        assert "total" in result
+        assert "per_sample" in result
+        assert "components" in result
+        assert result["total"] > 0
+assert "n_per_group" in result
         assert "total_samples" in result
         assert result["n_per_group"] > 0
 

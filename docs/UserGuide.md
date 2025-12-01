@@ -48,7 +48,7 @@ import pandas as pd
 
 from dmeth.io.readers import load_methylation_data
 from dmeth.core.analysis.preparation import filter_cpgs_by_missingness, impute_missing_values
-from dmeth.core.analysis.validation import validate_design, validate_contrast
+from dmeth.core.analysis.validation import build_design, validate_contrast
 from dmeth.core.analysis.core_analysis import fit_differential
 from dmeth.core.downstream.annotation import find_dmrs_by_sliding_window
 
@@ -117,7 +117,7 @@ Optional extras (dmeth\[full]):
 
 Optional dev extras (dmeth\[dev]):
 
-pytest, pytest-cov, black, isort, flake8, flake8-pyproject, flake8-bugbear, bandit, mypy, mkdocs, mkdocs-material
+pytest, pytest-cov, black, isort, flake8, flake8-pyproject, flake8-bugbear, bandit, mkdocs, mkdocs-material
 
 
 
@@ -497,13 +497,11 @@ dict
 `get_config() -> dmeth.config.config_manager.PlannerConfig`
 
 
-Retrieve the global singleton instance of ``PlannerConfig``.
-
-The instance is created on first access if necessary.
+Get the global PlannerConfig singleton instance.
 
 ### Returns
 PlannerConfig
-    The active configuration object.
+    The global configuration instance.
 
 
 ---
@@ -822,7 +820,7 @@ ValueError
 
 ---
 
-`summarize_differential_results(res: DataFrame, pval_thresh: float = 0.05, verbose: bool = True) -> Dict[str, Union[int, float]]`
+`summarize_differential_results(res: DataFrame, pval_thresh: float = 0.05, lfc_thresh: float = 0.0, verbose: bool = True) -> Dict[str, Union[int, float]]`
 
 
 Produce a comprehensive, publication-ready summary of differential     methylation results.
@@ -836,6 +834,8 @@ significance counts, directionality, effect-size statistics, and     variance-sh
     May also include ``pval``, ``s2``, ``s2_post``, and ``d0``         (prior degrees of freedom).
 - **pval_thresh**: `float, default 0.05`
     Adjusted p-value threshold defining statistical significance.
+- **lfc_thresh**: `float, default 0.0`
+    Minimum absolute |logFC| required (0 means no LFC filtering).
 - **verbose**: `bool, default True`
     Emit warnings for empty input or missing optional columns.
 
@@ -981,6 +981,28 @@ Input validation and integrity checks for differential methylation analysis.
 
 ---
 
+`build_design(data: 'pd.DataFrame', categorical: 'list[str]' = None, add_intercept: 'bool' = True, drop_first: 'bool' = True) -> 'pd.DataFrame'`
+
+
+Build a design matrix for linear modeling.
+
+### Parameters
+- **data**: `pd.DataFrame`
+    Columns are variables used in the design (condition,         patient, batch, age, sex, ...)
+- **categorical**: `list of str, optional`
+    Which columns should be treated as categorical. If None, infer automatically.
+- **add_intercept**: `bool, default=True`
+    Whether to add an intercept column of 1s.
+- **drop_first**: `bool, default=True`
+    Drop the first dummy level to avoid collinearity.
+
+### Returns
+pd.DataFrame
+    Numeric design matrix.
+
+
+---
+
 `check_analysis_memory(M: 'pd.DataFrame', warn_threshold_gb: 'float' = 8.0)`
 
 
@@ -1006,7 +1028,7 @@ MemoryError
 
 ---
 
-`validate_alignment(data: 'pd.DataFrame', design_matrix: 'np.ndarray', sample_names: 'Optional[Sequence]' = None, paired_ids: 'Optional[Sequence]' = None, group_col_idx: 'int' = 1) -> 'Tuple[pd.Index, np.ndarray, Optional[np.ndarray]]'`
+`validate_alignment(data: 'pd.DataFrame', design_matrix: 'Union[np.ndarray, pd.DataFrame]', sample_names: 'Optional[Sequence]' = None, paired_ids: 'Optional[Sequence]' = None, group_col_idx: 'int' = 1) -> 'Tuple[pd.Index, Union[pd.DataFrame, np.ndarray], Optional[np.ndarray]]'`
 
 
 Ensure perfect alignment between methylation data, design matrix, and optional     pairing information.
@@ -1016,7 +1038,7 @@ Verifies sample counts, column ordering, duplicate names, and (if supplied)     
 ### Parameters
 - **data**: `pd.DataFrame`
     Methylation matrix with samples in columns.
-- **design_matrix**: `np.ndarray`
+- **design_matrix**: `np.ndarray or pd.DataFrame`
     Corresponding design matrix.
 - **sample_names**: `Sequence or None`
     Explicit ordered list of sample identifiers (required only         if column names differ).
@@ -1036,56 +1058,26 @@ ValueError
 
 ---
 
-`validate_contrast(design_matrix: 'np.ndarray', contrast: 'Union[np.ndarray, Sequence[float], str]') -> 'np.ndarray'`
+`validate_contrast(design_matrix: 'Union[np.ndarray, pd.DataFrame]', contrast: 'Union[np.ndarray, Sequence[float]]') -> 'np.ndarray'`
 
 
-Validate and normalise a contrast against a given design matrix.
-
-- **Supports**: `- Numeric vectors/matrices`
-- Simple string syntax ``"treatment-control"`` (only for two-column     intercept + group designs)
-
-Checks dimensionality, non-zero status, and estimability via QR decomposition.
+Validate and normalize a numeric contrast vector against a design matrix.
 
 ### Parameters
-- **design_matrix**: `np.ndarray`
+- **design_matrix**: `np.ndarray or pd.DataFrame`
     Full design matrix (n_samples × n_coefficients).
-- **contrast**: `np.ndarray, Sequence[float], or str`
-    Contrast specification.
+- **contrast**: `np.ndarray or Sequence[float]`
+    Contrast vector (length must equal n_coefficients).
 
 ### Returns
 np.ndarray
-    Validated contrast vector (float64.
-
-### Raises
-ValueError
-    On shape mismatch, zero contrast, or non-estimable contrast.
-
-
----
-
-`validate_design(design: 'Sequence') -> 'pd.DataFrame'`
-
-
-Convert a simple two-group label vector into a proper design matrix.
-
-Accepts lists, tuples, arrays, or pandas Series containing exactly two     distinct group labels and returns a two-column matrix:
-
-- Column 0: intercept (all 1s)
-- Column 1: group indicator (0 = reference group, 1 = alternative)
-
-### Parameters
-- **design**: `Sequence`
-    Vector of group assignments (length ≥ 2).
-
-### Returns
-pd.DataFrame
-    n_sample × 2 design matrix acceptable for ``fit_differential``.
+    Validated contrast vector of shape (n_coefficients,) and dtype float64.
 
 ### Raises
 TypeError
-    If input is not a supported sequence type.
+    If inputs are not numeric or not the correct type.
 ValueError
-    If fewer than two samples, NaNs present, or more/less than two unique groups.
+    If contrast is zero, wrong length, or non-estimable.
 
 
 ---
@@ -1128,36 +1120,6 @@ Handles NaN values robustly (treated as non-significant) and preserves the     o
 ### Returns
 pd.Series
     Adjusted p-values with identical index/order as input.
-
-
----
-
-`annotate_dms_with_genes(dms: 'pd.DataFrame', genes: 'pd.DataFrame', cpg_chr_col: 'str' = 'chr', cpg_pos_col: 'str' = 'pos', gene_chr_col: 'str' = 'chr', gene_start_col: 'str' = 'start', gene_end_col: 'str' = 'end', gene_name_col: 'str' = 'gene_symbol', max_distance: 'int' = 5000) -> 'pd.DataFrame'`
-
-
-Assign nearest gene(s) to each differentially methylated site     (DMS) using genomic coordinates.
-
-Uses IntervalTree for ultra-fast exact overlap queries when available;     automatically falls back to distance-based nearest-gene mapping if the     dependency is missing.
-
-### Parameters
-- **dms**: `pd.DataFrame`
-    Table of differentially methylated CpGs with chromosome and position columns.
-- **genes**: `pd.DataFrame`
-    Gene annotation table containing chromosome, start, end, and gene symbol.
-cpg_chr_col, cpg_pos_col : str
-    Column names in ``dms`` for chromosome and position (default: "chr", "pos").
-gene_chr_col, gene_start_col, gene_end_col, gene_name_col : str
-    Corresponding column names in ``genes`` (default: "chr", "start",         "end", "gene_symbol").
-- **max_distance**: `int, default 5000`
-    Maximum distance (bp) considered for nearest-gene assignment when         no overlap exists.
-
-### Returns
-pd.DataFrame
-    Original ``dms`` with an added ``nearest_gene`` column containing         comma-separated gene symbols (or NaN if none found).
-
-### Notes
-- Handles mixed chromosome naming conventions via internal normalization.
-- Multiple overlapping genes are reported (e.g., bidirectional promoters).
 
 
 ---
@@ -1236,6 +1198,42 @@ pd.DataFrame
 ### Raises
 RuntimeError
     If ``pyliftover`` is not installed.
+
+
+---
+
+`map_dms_to_genes(dms: 'pd.DataFrame', genes: 'pd.DataFrame', cpg_chr_col: 'str' = 'chr', cpg_pos_col: 'str' = 'pos', gene_chr_col: 'str' = 'chr', gene_start_col: 'str' = 'start', gene_end_col: 'str' = 'end', gene_name_col: 'str' = 'gene_symbol', promoter_upstream: 'int' = 1500, proximal_cutoff: 'int' = 200, promoter_downstream: 'int' = 500, distal_promoter_max: 'int' = 5000, max_distance: 'int' = 1000000) -> 'pd.DataFrame'`
+
+
+Annotate CpGs with nearest gene and regulatory context.
+
+### Parameters
+- **dms**: `pd.DataFrame`
+    CpG positions with chromosome and position columns.
+- **genes**: `pd.DataFrame`
+    Gene annotations with chromosome, start, end, gene_symbol, and optional strand.
+cpg_chr_col, cpg_pos_col : str
+    Column names for CpG chromosome and position.
+gene_chr_col, gene_start_col, gene_end_col, gene_name_col : str
+    Column names for gene annotation.
+- **promoter_upstream**: `int`
+    Upstream region from TSS considered promoter.
+- **proximal_cutoff**: `int`
+    Distance near TSS classified as proximal promoter.
+- **promoter_downstream**: `int`
+    Downstream region from TSS considered promoter.
+- **distal_promoter_max**: `int`
+    Maximum distance upstream of TSS classified as distal promoter.
+- **max_distance**: `int`
+    Maximum distance to assign nearest gene if no overlap.
+
+### Returns
+pd.DataFrame
+    Original `dms` with added columns:
+    - nearest_gene : str or NaN
+    - relation : {"proximal_promoter", "distal_promoter", "promoter_downstream",
+                  "distal_upstream", "gene_body", "intergenic"}
+    - distance_bp : int or NaN
 
 
 ---
@@ -1536,7 +1534,7 @@ This lightweight module contains essential helper functions used across the DMet
 
 ---
 
-`summarize_groups(beta: DataFrame, groups: pandas.core.series.Series, summary_func: Callable = <function mean at 0x10a87f5ec730>) -> DataFrame`
+`summarize_groups(beta: DataFrame, groups: pandas.core.series.Series, summary_func: Callable = <function mean at 0x136a28c30>) -> DataFrame`
 
 
 Compute group-wise summary statistics (mean and variance) across samples     for a beta-value matrix.
@@ -1679,42 +1677,34 @@ Provides an unbiased estimate of clinical/translational performance     when the
 
 Planner configuration manager for DNA methylation studies.
 
-- Provides a thread-safe singleton (`PlannerConfig`) that centralizes platforms, experimental designs, cost components, timeline phases, and global settings.
-- All configurations are strictly validated with Pydantic models and can be atomically loaded from or saved to multiple formats (JSON, YAML, TOML, Python literals, Excel/CSV tables).
-
-### Features
-- Global singleton accessible via `get_config()`
-- Atomic file load/save with automatic merging over built-in defaults
-- Full Pydantic validation on every load and modification
-- Excel/CSV sheet-based overrides (Platforms, Designs, Costs, Timeline)
-- Power-analysis-based sample size calculation with Bonferroni/FDR correction
-- Timeline and cost estimation helpers
-- In-place configuration migration facility
+Provides a thread-safe singleton that centralizes platforms, experimental
+designs, cost components, timeline phases, and global settings with full
+validation and multiple format support.
 
 
 
 ---
 
-`CostComponentSchema(*, cost: Annotated[float, Ge(ge=0)], unit: Annotated[str, _PydanticGeneralMetadata(pattern='^(per_sample|per_cpg|fixed)$')], description: Optional[str] = None, optional: bool = False, applies_to: Optional[List[str]] = None) -> None`
+`CostComponentSchema(*, cost: pydantic.types.ConstrainedFloatValue, unit: pydantic.types.ConstrainedStrValue, description: Optional[str] = None, optional: bool = False, applies_to: Optional[List[str]] = None) -> None`
 
 
-_No docstring provided._
-
-
----
-
-`DesignSchema(*, name: str, description: Optional[str] = None, n_groups: Annotated[int, Ge(ge=1)], paired: bool = False, complexity: Optional[str] = None, min_n_recommended: Annotated[int, Ge(ge=1)], power_adjustment: Annotated[float, Gt(gt=0)], analysis_method: Optional[str] = None, example_uses: Optional[List[str]] = None) -> None`
-
-
-_No docstring provided._
+Configuration schema for cost components.
 
 
 ---
 
-`GlobalSettingsSchema(*, contingency_buffer_percent: Annotated[float, Ge(ge=0.0), Le(le=100.0)] = 10.0, default_mcp_method: Annotated[str, _PydanticGeneralMetadata(pattern='^(bonferroni|fdr|none)$')] = 'fdr') -> None`
+`DesignSchema(*, name: str, description: Optional[str] = None, n_groups: pydantic.types.ConstrainedIntValue, paired: bool = False, complexity: Optional[str] = None, min_n_recommended: pydantic.types.ConstrainedIntValue, power_adjustment: pydantic.types.ConstrainedFloatValue, analysis_method: Optional[str] = None, example_uses: Optional[List[str]] = None) -> None`
 
 
-_No docstring provided._
+Configuration schema for experimental design.
+
+
+---
+
+`GlobalSettingsSchema(*, contingency_buffer_percent: pydantic.types.ConstrainedFloatValue = 10.0, default_mcp_method: pydantic.types.ConstrainedStrValue = 'fdr') -> None`
+
+
+Global configuration settings.
 
 
 ---
@@ -1722,39 +1712,38 @@ _No docstring provided._
 `PlannerConfig(config_file: Union[str, pathlib.Path, NoneType] = None)`
 
 
-Thread-safe singleton holding the complete planner configuration.
+Thread-safe singleton for planner configuration management.
 
-The singleton pattern ensures that only one configuration instance exists
-throughout the application lifetime. Access is recommended via the
-``get_config()`` function.
+This class manages all configuration for DNA methylation study planning,
+including platforms, experimental designs, costs, and timelines.
 
 ### Parameters
 - **config_file**: `str or Path, optional`
-    Configuration file to load immediately after instantiation.
+    Configuration file to load on initialization.
 
 
 ---
 
-`PlannerConfigModel(*, platforms: Dict[str, dmeth.config.config_manager.PlatformSchema], designs: Dict[str, dmeth.config.config_manager.DesignSchema], cost_components: Dict[str, dmeth.config.config_manager.CostComponentSchema], timeline_phases: Dict[str, dmeth.config.config_manager.TimelinePhaseSchema], global_settings: Optional[dmeth.config.config_manager.GlobalSettingsSchema] = GlobalSettingsSchema(contingency_buffer_percent=10.0, default_mcp_method='fdr')) -> None`
+`PlannerConfigModel(*, platforms: Dict[str, dmeth.config.config_manager.PlatformSchema], designs: Dict[str, dmeth.config.config_manager.DesignSchema], cost_components: Dict[str, dmeth.config.config_manager.CostComponentSchema], timeline_phases: Dict[str, dmeth.config.config_manager.TimelinePhaseSchema], global_settings: dmeth.config.config_manager.GlobalSettingsSchema = None) -> None`
 
 
-_No docstring provided._
-
-
----
-
-`PlatformSchema(*, name: str, manufacturer: Optional[str] = None, n_cpgs: Annotated[int, Ge(ge=1)], cost_per_sample: Annotated[float, Ge(ge=0)], processing_days: Annotated[int, Ge(ge=0)], dna_required_ng: Optional[float] = None, coverage: Optional[str] = None, release_year: Optional[int] = None, status: Optional[str] = None, recommended: bool = False, notes: Optional[str] = None) -> None`
-
-
-_No docstring provided._
+Complete planner configuration model.
 
 
 ---
 
-`TimelinePhaseSchema(*, name: Optional[str] = None, base_duration_days: Annotated[float, Gt(gt=0)], scaling_factor: Optional[float] = 0.0, batch_adjustment: Optional[float] = 0.0, description: Optional[str] = None, critical: bool = False, optional: bool = False, parallelizable: bool = False) -> None`
+`PlatformSchema(*, name: str, manufacturer: Optional[str] = None, n_cpgs: pydantic.types.ConstrainedIntValue, cost_per_sample: pydantic.types.ConstrainedFloatValue, processing_days: pydantic.types.ConstrainedIntValue, dna_required_ng: Optional[pydantic.types.ConstrainedFloatValue] = None, coverage: Optional[str] = None, release_year: Optional[pydantic.types.ConstrainedIntValue] = None, status: Optional[str] = None, recommended: bool = False, notes: Optional[str] = None) -> None`
 
 
-_No docstring provided._
+Configuration schema for a methylation array platform.
+
+
+---
+
+`TimelinePhaseSchema(*, name: Optional[str] = None, base_duration_days: pydantic.types.ConstrainedFloatValue, scaling_factor: pydantic.types.ConstrainedFloatValue = 0.0, batch_adjustment: pydantic.types.ConstrainedFloatValue = 0.0, description: Optional[str] = None, critical: bool = False, optional: bool = False, parallelizable: bool = False) -> None`
+
+
+Configuration schema for timeline phases.
 
 
 ---
@@ -1762,13 +1751,11 @@ _No docstring provided._
 `get_config() -> dmeth.config.config_manager.PlannerConfig`
 
 
-Retrieve the global singleton instance of ``PlannerConfig``.
-
-The instance is created on first access if necessary.
+Get the global PlannerConfig singleton instance.
 
 ### Returns
 PlannerConfig
-    The active configuration object.
+    The global configuration instance.
 
 
 ---
@@ -1776,74 +1763,15 @@ PlannerConfig
 `load_file(path: Union[str, pathlib.Path], allow_excel: bool = True) -> None`
 
 
-Load and validate a configuration file, merging it with built-in defaults.
-
-Supported formats are JSON, YAML, TOML, Python literal dictionaries,
-and Excel/CSV table files. The loaded data is deeply merged over the
-defaults and then validated against the Pydantic schema.
-
-### Parameters
-- **path**: `str or Path`
-    Path to the configuration file.
-- **allow_excel**: `bool, default True`
-    Permit loading from Excel (.xlsx, .xls) or CSV files.
-
-### Raises
-FileNotFoundError
-    If the specified file does not exist.
-PermissionError
-    If the file cannot be read.
-ValueError
-    If the file format is unsupported or malformed.
-ValidationError
-    If the merged configuration fails schema validation.
+Load configuration from a file. See PlannerConfig.load_file().
 
 
 ---
 
-`load_from_table_file(path: pathlib.Path) -> Dict[str, Any]`
+`migrate(migrator: Callable[[Dict], Dict]) -> None`
 
 
-Parse configuration fragments from an Excel workbook or CSV file.
-
-Recognised sheets/tables are:
-
-- Platforms
-- Designs
-- Costs (mapped to ``cost_components``)
-- Timeline (mapped to ``timeline_phases``)
-
-The function returns a dictionary containing only the sections that
-could be successfully interpreted.
-
-### Parameters
-- **path**: `Path`
-    Path to the Excel or CSV file.
-
-### Returns
-dict
-    Partial configuration with keys ``platforms``, ``designs``,
-    ``cost_components``, and/or ``timeline_phases``.
-
-### Raises
-ValueError
-    If no recognised configuration tables are found.
-
-
----
-
-`migrate(migrator_callable) -> None`
-
-
-Apply an in-place migration to the active configuration.
-
-The provided callable receives a copy of the current raw configuration
-and must return an updated dictionary. The result is merged, validated,
-and activated.
-
-### Parameters
-- **migrator_callable**: `callable`
-    Function ``raw_config -> updated_config``.
+Apply a migration function. See PlannerConfig.migrate().
 
 
 ---
@@ -1851,17 +1779,15 @@ and activated.
 `reload() -> None`
 
 
-Reload the currently-loaded configuration file.
-
-If no file was loaded earlier, this re-validates the in-memory config.
+Reload configuration. See PlannerConfig.reload().
 
 
 ---
 
-`reset_config()`
+`reset_config() -> None`
 
 
-Destroy the current singleton instance (primarily for testing).
+Reset the global configuration instance (primarily for testing).
 
 
 ---
@@ -1869,23 +1795,7 @@ Destroy the current singleton instance (primarily for testing).
 `save_file(path: Union[str, pathlib.Path], fmt: Optional[str] = None) -> None`
 
 
-Atomically save the current configuration to a file.
-
-The format is inferred from the file extension unless ``fmt`` is provided.
-
-Supported formats: JSON (default), YAML, TOML.
-
-### Parameters
-- **path**: `str or Path`
-    Destination file path.
-- **fmt**: `str, optional`
-    Explicit format (``json``, ``yaml``, ``toml``).
-
-### Raises
-ValueError
-    If the requested format is not supported.
-RuntimeError
-    If a required library (PyYAML or toml) is missing.
+Save configuration to a file. See PlannerConfig.save_file().
 
 
 ---
@@ -2158,30 +2068,6 @@ The ``__post_init__`` method automatically:
 
 ---
 
-`create_analysis_report(summary: Dict[str, Any], plots: Dict[str, matplotlib.figure.Figure], outpath: Union[str, pathlib.Path] = 'analysis_report.html', title: str = 'Methylation Analysis Report') -> pathlib.Path`
-
-
-Generate a self-contained, minimal HTML report embedding a JSON     summary and PNG images of supplied figures.
-
-Useful for quick sharing of results without requiring Jupyter or     additional dependencies.
-
-### Parameters
-- **summary**: `dict`
-    Arbitrary summary statistics or results (JSON-serialisable).
-- **plots**: `dict[str, plt.Figure]`
-    Mapping from plot name to Matplotlib figure objects.
-- **outpath**: `str or Path, default "analysis_report.html"`
-    Output HTML file location.
-- **title**: `str, default "Methylation Analysis Report"`
-    Top-level heading in the report.
-
-### Returns
-Path
-    Path to the generated HTML file.
-
-
----
-
 `export_idat_hdf5(beta: DataFrame, mvals: Optional[DataFrame], sample_sheet: Optional[DataFrame], filepath: Union[str, pathlib.Path], compress: bool = True) -> pathlib.Path`
 
 
@@ -2304,7 +2190,7 @@ All other ``dmeth`` modules import the logger via ``get_logger()``.
 
 ---
 
-`ProgressAwareLogger(name)`
+`ProgressAwareLogger(name) -> 'None'`
 
 
 Custom logger class that supports a temporary progress bar.
@@ -2313,7 +2199,7 @@ The progress bar stays active until the next normal log call.
 
 ---
 
-`get_logger(name: str = 'dmeth') -> logging.Logger`
+`get_logger(name: 'str' = 'dmeth') -> 'logging.Logger'`
 
 
 Return the central DMeth logger instance.
@@ -2533,7 +2419,7 @@ plt.Figure
 
 ---
 
-`plot_stage(stage: str, M: DataFrame, res: Optional[DataFrame] = None, metadata: Optional[DataFrame] = None, groups_col: str = 'Type', top_n: int = 10, embedding: str = 'pca', interactive: bool = False, save_path: Union[str, Dict[str, str], NoneType] = None, dpi: int = 300, **kwargs) -> Dict[str, Union[matplotlib.figure.Figure, ForwardRef('plotly.graph_objects.Figure')]]`
+`plot_stage(stage: str, M: DataFrame, res: Optional[DataFrame] = None, metadata: Optional[DataFrame] = None, groups_col: str = 'Type', top_n: int = 10, embedding: str = 'pca', interactive: bool = False, save_path: Union[str, pathlib.Path, Mapping[str, str], NoneType] = None, dpi: int = 300, **kwargs: Any) -> Dict[str, Union[matplotlib.figure.Figure, ForwardRef('PlotlyFigure')]]`
 
 
 Orchestrate a complete multi-panel QC or analysis visualisation for     a given processing stage.
@@ -2598,6 +2484,93 @@ Create an enhanced volcano plot with top hits annotated.
 
 ### Returns
 plt.Figure
+    Volcano plot figure
+
+
+---
+
+`pvalue_histogram(pvals: Union[pandas.core.series.Series, ndarray[Any, numpy.dtype[numpy.float64]], List[float]], bins: int = 50, save_path: Union[str, pathlib.Path, NoneType] = None) -> matplotlib.figure.Figure`
+
+
+Histogram of p-values with a flat null-expectation line for QC assessment.
+
+### Parameters
+- **pvals**: `array-like`
+    Collection of p-values.
+- **bins**: `int, default 50`
+    Number of histogram bins.
+- **save_path**: `str or Path, optional`
+    Path to save the figure.
+
+### Returns
+plt.Figure
+    Histogram figure.
+
+
+---
+
+`visualize_dms(res: DataFrame, beta: Optional[DataFrame] = None, top_n: int = 50, volcano: bool = True, manhattan: bool = True, heatmap: bool = True, sample_metadata: Optional[DataFrame] = None, save_dir: Union[str, pathlib.Path, NoneType] = None) -> Dict[str, Optional[matplotlib.figure.Figure]]`
+
+
+Produce a standard set of summary plots for differentially methylated sites/regions.
+
+Optionally creates volcano, Manhattan, and heatmap visualisations.
+
+### Parameters
+- **res**: `pd.DataFrame`
+    Differential methylation results.
+- **beta**: `pd.DataFrame, optional`
+    Beta matrix required for the heatmap panel.
+- **top_n**: `int, default 50`
+    Number of top CpGs shown in the heatmap.
+volcano / manhattan / heatmap : bool, default True
+    Toggle creation of each panel.
+- **sample_metadata**: `pd.DataFrame, optional`
+    Sample annotation (currently unused but reserved for future clustering).
+- **save_dir**: `str or Path, optional`
+    Directory where individual PNG files are written.
+
+### Returns
+dict[str, plt.Figure | None]
+    Figures for "volcano", "manhattan", and "heatmap" (None if not generated).
+
+## Citation
+
+If you use `dmeth` in your research, please cite:
+
+```bibtex
+@software{dmeth2025,
+  author = {Afolabi, Dare},
+  title = {dmeth: A comprehensive Python toolkit for differential DNA methylation analysis with empirical Bayes moderation and biomarker discovery},
+  version = {0.2.0},
+  year = {2025},
+  publisher = {GitHub},
+  doi = {10.5281/zenodo.17685513},
+  url = {https://doi.org/10.5281/zenodo.17685513},
+}
+```
+
+### References
+
+- Smyth, G. K. (2004). Linear models and empirical bayes methods for assessing differential expression in microarray experiments. *Statistical Applications in Genetics and Molecular Biology*, 3(1).
+- Liu, P., & Hwang, J.T.G. (2007). Quick calculation for sample size while controlling false discovery rate with application to microarray analysis. *Bioinformatics*, 23(6), 739–746.
+- Du, P., Zhang, X., Huang, C.-C., Jafari, N., Kibbe, W.A., Hou, L., & Lin, S. (2010). Comparison of Beta-value and M-value methods for quantifying methylation levels by microarray analysis. *BMC Bioinformatics*, 11:587.
+- Jung, S.H., Young, S.S. (2012). Power and sample size calculation for microarray studies. *Journal of Biopharmaceutical Statistics*, 22(1):30-42.
+- Phipson, B. et al. (2016). missMethyl: an R package for analyzing data from Illumina’s HumanMethylation450 platform. *Bioinformatics*, 32(2), 286-288.
+
+
+## Support
+
+- **Issues**: [GitHub Issues](https://github.com/dare-afolabi/dmeth/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/dare-afolabi/dmeth/discussions/1)
+- **Email**: [dare.afolabi@outlook.com](mailto:dare.afolabi@outlook.com)
+
+
+
+---
+
+> **Auto-generated** on 2025-12-01 08:38:14
+e
     Volcano plot figure
 
 

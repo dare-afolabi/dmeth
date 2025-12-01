@@ -23,10 +23,13 @@ All other ``dmeth`` modules import the logger via ``get_logger()``.
 """
 
 
+from __future__ import annotations
+
 import logging
 import os
 import sys
 from datetime import datetime
+from typing import Optional
 
 from tqdm import tqdm
 
@@ -37,16 +40,16 @@ class ProgressAwareLogger(logging.Logger):
     The progress bar stays active until the next normal log call.
     """
 
-    def __init__(self, name):
+    def __init__(self, name) -> None:
         super().__init__(name)
         self._pbar = None  # active progress bar
 
-    def _close_pbar(self):
+    def _close_pbar(self) -> None:
         if self._pbar is not None:
             self._pbar.close()
             self._pbar = None
 
-    def progress(self, msg: str, total: int = None):
+    def progress(self, msg: str, total: Optional[int] = None) -> None:
         """
         Start or replace the active tqdm progress bar.
 
@@ -70,7 +73,7 @@ class ProgressAwareLogger(logging.Logger):
         )
         self._pbar.set_description(msg)
 
-    def progress_update(self, n: int = 1):
+    def progress_update(self, n: int = 1) -> None:
         """
         Advance the active progress bar by the specified number of steps.
 
@@ -88,19 +91,19 @@ class ProgressAwareLogger(logging.Logger):
                 logger.warning(f"Failed to advance progress bar: {e}")
 
     # Override logging methods so they auto-close the pbar
-    def info(self, msg, *a, **k):
+    def info(self, msg: str, *a: object, **k: object) -> None:
         self._close_pbar()
         super().info(msg, *a, **k)
 
-    def warning(self, msg, *a, **k):
+    def warning(self, msg: str, *a: object, **k: object) -> None:
         self._close_pbar()
         super().warning(msg, *a, **k)
 
-    def error(self, msg, *a, **k):
+    def error(self, msg: str, *a: object, **k: object) -> None:
         self._close_pbar()
         super().error(msg, *a, **k)
 
-    def debug(self, msg, *a, **k):
+    def debug(self, msg: str, *a: object, **k: object) -> None:
         self._close_pbar()
         super().debug(msg, *a, **k)
 

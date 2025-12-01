@@ -610,13 +610,24 @@ def fit_differential(
     if "pval" in res.columns:
         res = res.sort_values("pval")
 
-    # Group means
     if group_labels is None:
-        # Heuristic: pick first 2-level column
-        for col in design.columns:
-            if design[col].nunique() == 2:
-                group_labels = design[col]
-                break
+        # Look for candidate categorical columns
+        candidates = [
+            col
+            for col in design.columns
+            if design[col].dtype.name == "category" or design[col].nunique() <= 5
+        ]
+
+        if len(candidates) >= 1:
+            # Prefer column actually named 'group' if present
+            if "group" in candidates:
+                group_labels = design["group"]
+            else:
+                group_labels = design[candidates[0]]
+        else:
+            raise ValueError(
+                "No suitable grouping column found. Please supply `group_labels`."
+            )
 
     if group_labels is not None:
         group_labels = group_labels.reindex(M_valid.columns)
@@ -627,6 +638,8 @@ def fit_differential(
         mean_cols = [c for c in group_means_full.columns if str(c).startswith("mean_")]
 
         if mean_cols:
+            res = res.sort_index()
+            group_means_full = group_means_full.sort_index()
             res = pd.concat([res, group_means_full[mean_cols]], axis=1)
 
     if return_residuals:

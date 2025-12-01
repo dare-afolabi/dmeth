@@ -12,8 +12,6 @@ Covers:
 """
 
 
-import re
-
 import numpy as np
 import pandas as pd
 import pytest
@@ -38,10 +36,10 @@ from dmeth.core.analysis.preparation import (
     impute_missing_values,
 )
 from dmeth.core.analysis.validation import (
+    build_design,
     check_analysis_memory,
     validate_alignment,
     validate_contrast,
-    validate_design,
 )
 
 
@@ -137,7 +135,7 @@ class TestCoreAnalysis:
         )
 
         group_labels = ["control"] * 10 + ["treatment"] * 10
-        design = validate_design(group_labels)
+        design = build_design(pd.DataFrame({"group": group_labels}))
         contrast = np.array([0, 1])
 
         result = fit_differential(M, design, contrast=contrast)
@@ -163,7 +161,7 @@ class TestCoreAnalysis:
         M.iloc[90:, 15:] = np.nan
 
         group_labels = ["control"] * 10 + ["treatment"] * 10
-        design = validate_design(group_labels)
+        design = build_design(pd.DataFrame({"group": group_labels}))
         contrast = np.array([0, 1])
 
         result = fit_differential(M, design, contrast=contrast, use_numba=False)
@@ -203,7 +201,7 @@ class TestCoreAnalysis:
         )
 
         group_labels = ["control"] * 10 + ["treatment"] * 10
-        design = validate_design(group_labels)
+        design = build_design(pd.DataFrame({"group": group_labels}))
         contrast = np.array([0, 1])
 
         result = fit_differential_chunked(
@@ -528,29 +526,23 @@ class TestAnalysisValidation:
         assert "peak_gb" in result
         assert "available_gb" in result
 
-    def test_validate_design_basic(self):
+    def test_build_design_basic(self):
         design = ["A", "A", "A", "B", "B", "B"]
-        result = validate_design(design)
+        result = build_design(pd.DataFrame({"group": design}))
 
         assert result.shape == (6, 2)
-        assert result.iloc[:, 0].sum() == 6
+        assert (result["intercept"] == 1).all()
 
-    def test_validate_design_invalid(self):
-        with pytest.raises(
-            ValueError,
-            match=re.escape("design must have exactly two groups (got 1: ['A'])"),
-        ):
-            validate_design(["A", "A", "A"])
+    def test_build_design_invalid(self):
+        result = build_design(pd.DataFrame({"group": ["A", "A", "A"]}))
+        assert result.shape == (3, 1)
 
-    def test_validate_design_errors(self):
+    def test_build_design_errors(self):
         with pytest.raises(TypeError):
-            validate_design("string")
-        with pytest.raises(ValueError):
-            validate_design([np.nan, "A"])
-        with pytest.raises(ValueError):
-            validate_design(["A"])
-        with pytest.raises(ValueError):
-            validate_design(["A", "B", "C"])
+            build_design("string")
+        build_design(pd.DataFrame({"group": [np.nan, "A"]}))
+        build_design(pd.DataFrame({"group": ["A"]}))
+        build_design(pd.DataFrame({"group": ["A", "B", "C"]}))
 
     def test_validate_contrast_basic(self):
         design = np.array([[1, 0], [1, 0], [1, 1], [1, 1]])
@@ -741,3 +733,4 @@ class TestAnalysisValidation:
         ]  # each subject has two samples but group sums are 0 and 2
         with pytest.raises(ValueError):
             validate_alignment(data=data, design_matrix=design, paired_ids=paired_ids)
+      validate_alignment(data=data, design_matrix=design, paired_ids=paired_ids)

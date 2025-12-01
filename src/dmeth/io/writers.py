@@ -27,9 +27,8 @@ Features
 
 import json
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Optional, Union
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
@@ -195,6 +194,7 @@ def save_processed_data(
         data.pheno.to_csv(path.with_name(f"{path.stem}_pheno.csv"))
         if ann is not None:
             ann.to_csv(path.with_name(f"{path.stem}_ann.csv"))
+        logger.info("Saved ProcessedData in csv format")
 
     elif fmt == "tsv":
         sep = "\t"
@@ -202,6 +202,7 @@ def save_processed_data(
         data.pheno.to_csv(path.with_name(f"{path.stem}_pheno.tsv"), sep=sep)
         if ann is not None:
             ann.to_csv(path.with_name(f"{path.stem}_ann.tsv"), sep=sep)
+        logger.info("Saved ProcessedData in tsv format")
 
     elif fmt == "xlsx":
         try:
@@ -226,6 +227,7 @@ def save_processed_data(
 
     elif fmt in ("pickle", "pkl"):
         pd.to_pickle(data, path)
+        logger.info("Saved ProcessedData in pickle format")
 
     elif fmt in ("hdf5", "h5"):
         comp_kwargs = {}
@@ -239,6 +241,7 @@ def save_processed_data(
             )
             if ann is not None:
                 store.put("ann", ann, format="table", data_columns=True, **comp_kwargs)
+        logger.info("Saved ProcessedData in HDF format")
 
 
 def _check_overwrite(path: Path, overwrite: bool) -> None:
@@ -360,13 +363,7 @@ def export_idat_hdf5(
             raise RuntimeError(
                 f"No HDF writer available (h5py or pandas.HDFStore failed): {e}"
             )
-
-
-def create_analysis_report(
-    summary: Dict[str, Any],
-    plots: Dict[str, plt.Figure],
-    outpath: Union[str, Path] = "analysis_report.html",
-    title: str = "Methylation Analysis Report",
+Report",
 ) -> Path:
     """
     Generate a self-contained, minimal HTML report embedding a JSON \

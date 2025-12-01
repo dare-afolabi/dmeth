@@ -34,7 +34,10 @@ from dmeth.utils.logger import logger
 
 
 def summarize_differential_results(
-    res: pd.DataFrame, pval_thresh: float = 0.05, verbose: bool = True
+    res: pd.DataFrame,
+    pval_thresh: float = 0.05,
+    lfc_thresh: float = 0.0,
+    verbose: bool = True,
 ) -> Dict[str, Union[int, float]]:
     """
     Produce a comprehensive, publication-ready summary of differential \
@@ -52,6 +55,8 @@ def summarize_differential_results(
         (prior degrees of freedom).
     pval_thresh : float, default 0.05
         Adjusted p-value threshold defining statistical significance.
+    lfc_thresh : float, default 0.0
+        Minimum absolute |logFC| required (0 means no LFC filtering).
     verbose : bool, default True
         Emit warnings for empty input or missing optional columns.
 
@@ -95,13 +100,18 @@ def summarize_differential_results(
             "d0": 0.0,
         }
 
+    # Column validation
+    for col in ("logFC", "pval"):
+        if col not in res.columns:
+            raise KeyError(f"Column '{col}' not in results DataFrame")
+
     # Column-safe extraction
     padj = (
         res["padj"].fillna(1.0)
         if "padj" in res.columns
         else pd.Series(1.0, index=res.index)
     )
-    sig = res[padj < pval_thresh]
+    sig = res[(padj < pval_thresh) & (res["logFC"].abs() >= lfc_thresh)]
 
     logFC = (
         res["logFC"].fillna(0.0)
@@ -127,8 +137,12 @@ def summarize_differential_results(
         "total_tested": len(res),
         "significant": len(sig),
         "pct_significant": (len(sig) / len(res) * 100.0) if len(res) > 0 else 0.0,
-        "hypermethylated": sig[logFC > 0].shape[0] if not sig.empty else 0,
-        "hypomethylated": sig[logFC < 0].shape[0] if not sig.empty else 0,
+        "hypermethylated": sig[sig["logFC"] >= +lfc_thresh].shape[0]
+        if not sig.empty
+        else 0,
+        "hypomethylated": sig[sig["logFC"] <= -lfc_thresh].shape[0]
+        if not sig.empty
+        else 0,
         "mean_abs_logFC_sig": sig["logFC"].abs().mean() if not sig.empty else 0.0,
         "median_abs_logFC_sig": sig["logFC"].abs().median() if not sig.empty else 0.0,
         "max_abs_logFC": logFC.abs().max(),

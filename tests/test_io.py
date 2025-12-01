@@ -16,7 +16,6 @@ This suite covers:
 import tempfile
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pytest
@@ -28,12 +27,7 @@ from dmeth.io.data_utils import (
     _ensure_index_strings,
 )
 from dmeth.io.readers import _read, load_methylation_data, load_processed_data
-from dmeth.io.writers import (
-    create_analysis_report,
-    export_idat_hdf5,
-    export_results,
-    save_processed_data,
-)
+from dmeth.io.writers import export_idat_hdf5, export_results, save_processed_data
 
 
 class TestDataUtils:
@@ -199,18 +193,6 @@ class TestWriters:
             save_processed_data(data, path, format="csv")
             assert path.exists()
 
-    def test_create_analysis_report(self):
-        summary = {"n_samples": 100, "n_significant": 50}
-        fig = plt.figure()
-        plt.plot([1, 2, 3])
-        plots = {"test_plot": fig}
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            path = Path(tmpdir) / "report.html"
-            result = create_analysis_report(summary, plots, path)
-            assert result.exists()
-            assert result.suffix == ".html"
-
 
 class TestIOEdgeCases:
     """Target additional branches in readers and writers"""
@@ -290,15 +272,6 @@ class TestIOEdgeCases:
         sample_sheet = pd.DataFrame(index=["S1", "S2"])
         path = tmp_path / "idat.h5"
         result = export_idat_hdf5(beta, mvals, sample_sheet, path)
-        assert result.exists()
-
-    def test_create_analysis_report_with_none_plot(self, tmp_path):
-        from dmeth.io.writers import create_analysis_report
-
-        summary = {"n": 1}
-        plots = {"bad": None}
-        path = tmp_path / "report.html"
-        result = create_analysis_report(summary, plots, path)
         assert result.exists()
 
 
@@ -412,14 +385,6 @@ class TestIOMopup:
         path = tmp_path / "idat.h5"
         result = export_idat_hdf5(beta, mvals=None, sample_sheet=None, filepath=path)
         assert result.exists()
-
-    def test_create_analysis_report_with_none_plot(self, tmp_path):
-        summary = {"n": 1}
-        plots = {"bad": None}
-        path = tmp_path / "report.html"
-        result = create_analysis_report(summary, plots, path)
-        assert result.exists()
-        assert "Summary" in path.read_text()
 
     # more
     def test_read_various_formats_and_hdf5_keys(self, tmp_path):
@@ -574,6 +539,37 @@ class TestIOMopup:
 
         # Pickle
         outp = tmp_path / "out.pkl"
+        writers.save_processed_data(data, outp, format="pkl")
+        assert outp.exists()
+
+        # HDF5
+        pytest.importorskip("tables")
+        outh = tmp_path / "out.h5"
+        writers.save_processed_data(data, outh, format="hdf5")
+        assert outh.exists()
+
+        # suffix handling
+        wrong = tmp_path / "wrong.txt"
+        writers.save_processed_data(data, wrong, format="csv")
+        assert wrong.with_suffix(".csv").exists()
+
+    def test_export_idat_hdf5_fallback_and_report(self, tmp_path, monkeypatch):
+        beta = pd.DataFrame(
+            np.random.rand(4, 2),
+            index=[f"cg{i}" for i in range(4)],
+            columns=["s1", "s2"],
+        )
+        sample_sheet = pd.DataFrame({"age": [10, 20]}, index=["s1", "s2"])
+        fp = tmp_path / "idat.h5"
+
+        # Force writers.h5py to None to test pandas.HDFStore fallback
+        monkeypatch.setattr(writers, "h5py", None)
+        pytest.importorskip("tables")
+        outp = writers.export_idat_hdf5(
+            beta, mvals=None, sample_sheet=sample_sheet, filepath=fp, compress=False
+        )
+        assert outp.exists()
+mp_path / "out.pkl"
         writers.save_processed_data(data, outp, format="pkl")
         assert outp.exists()
 

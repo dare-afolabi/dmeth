@@ -44,7 +44,7 @@ import pandas as pd
 
 from dmeth.io.readers import load_methylation_data
 from dmeth.core.analysis.preparation import filter_cpgs_by_missingness, impute_missing_values
-from dmeth.core.analysis.validation import validate_design, validate_contrast
+from dmeth.core.analysis.validation import build_design, validate_contrast
 from dmeth.core.analysis.core_analysis import fit_differential
 from dmeth.core.downstream.annotation import find_dmrs_by_sliding_window
 
@@ -112,7 +112,7 @@ Optional extras (dmeth\[full]):
 
 Optional dev extras (dmeth\[dev]):
 
-pytest, pytest-cov, black, isort, flake8, flake8-pyproject, flake8-bugbear, bandit, mypy, mkdocs, mkdocs-material
+pytest, pytest-cov, black, isort, flake8, flake8-pyproject, flake8-bugbear, bandit, mkdocs, mkdocs-material
 
 ## Documentation
 
@@ -127,7 +127,7 @@ If you use `dmeth` in your research, please cite:
 @software{dmeth2025,
   author = {Afolabi, Dare},
   title = {dmeth: A comprehensive Python toolkit for differential DNA methylation analysis with empirical Bayes moderation and biomarker discovery},
-  version = {0.1.1},
+  version = {0.2.0},
   year = {2025},
   publisher = {GitHub},
   doi = {10.5281/zenodo.17685513},
@@ -148,3 +148,4 @@ If you use `dmeth` in your research, please cite:
 - **Issues**: [GitHub Issues](https://github.com/dare-afolabi/dmeth/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/dare-afolabi/dmeth/discussions/1)
 - **Email**: [dare.afolabi@outlook.com](mailto:dare.afolabi@outlook.com)
+ook.com)

@@ -28,12 +28,15 @@ Features
 
 
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Mapping, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from matplotlib import cm
+from matplotlib.lines import Line2D
+from numpy.typing import NDArray
 
 # from sklearn.preprocessing import quantile_transform
 from scipy.cluster.hierarchy import dendrogram, linkage
@@ -48,7 +51,13 @@ try:
     import plotly.graph_objects as go
 except ImportError:
     go = None
-    plotly = None
+
+from matplotlib.figure import Figure as MplFigure
+
+try:
+    from plotly.graph_objects import Figure as PlotlyFigure
+except Exception:
+    PlotlyFigure = Any
     logger.warning(
         "plotly not installed. \
         plotly interactive figures for embedding disabled."
@@ -69,7 +78,7 @@ except ImportError:
 sns.set(style="whitegrid")
 
 
-def _new_fig(figsize: tuple = (10, 6), dpi: int = 300) -> plt.Figure:
+def _new_fig(figsize: Tuple[int, int] = (10, 6), dpi: int = 300) -> MplFigure:
     """
     Create a new matplotlib figure with standardised DMeth plotting settings.
 
@@ -98,7 +107,7 @@ def plot_volcano(
     top_n: int = 10,
     dpi: int = 300,
     save_path: Optional[Union[str, Path]] = None,
-) -> plt.Figure:
+) -> MplFigure:
     """
     Create an enhanced volcano plot with top hits annotated.
 
@@ -179,8 +188,8 @@ def plot_volcano(
                     ha="left",
                 )
 
-    ax.set_xlabel("Log2 Fold Change")
-    ax.set_ylabel("-log₁₀(p-value)")
+    ax.set_xlabel("Log₂ Fold Change")
+    ax.set_ylabel("-Log₁₀(p-value)")
     ax.set_title("Volcano Plot")
     ax.legend()
     plt.tight_layout()
@@ -196,7 +205,7 @@ def plot_pvalue_qq(
     pval_col: str = "pval",
     dpi: int = 300,
     save_path: Optional[Union[str, Path]] = None,
-) -> plt.Figure:
+) -> MplFigure:
     """
     Produce a quantile-quantile plot comparing observed versus \
     expected -log10(p-values).
@@ -224,12 +233,12 @@ def plot_pvalue_qq(
     n = len(pvals)
     expected = -np.log10(np.linspace(1 / (n + 1), 1 - 1 / (n + 1), n))
 
-    fig = _new_fig((6, 6), dpi)
+    fig = _new_fig((10, 7), dpi)
     ax = fig.add_subplot(111)
-    ax.scatter(expected, observed, alpha=0.6, s=15, edgecolor="k", linewidth=0.3)
+    ax.scatter(expected, observed, alpha=0.6, s=30, edgecolor="k", linewidth=0.3)
     ax.plot([0, expected.max()], [0, expected.max()], "r--", lw=2, label="y=x")
-    ax.set_xlabel("Expected -log₁₀(p)")
-    ax.set_ylabel("Observed -log₁₀(p)")
+    ax.set_xlabel("Expected -Log₁₀(p)")
+    ax.set_ylabel("Observed -Log₁₀(p)")
     ax.set_title("P-value Q-Q Plot")
     ax.grid(alpha=0.3)
     ax.legend()
@@ -250,10 +259,10 @@ def plot_stage(
     top_n: int = 10,
     embedding: str = "pca",
     interactive: bool = False,
-    save_path: Optional[Union[str, Dict[str, str]]] = None,
+    save_path: Optional[Union[str, Path, Mapping[str, str]]] = None,
     dpi: int = 300,
-    **kwargs,
-) -> Dict[str, Union[plt.Figure, "plotly.graph_objects.Figure"]]:
+    **kwargs: Any,
+) -> Dict[str, Union[MplFigure, "PlotlyFigure"]]:
     """
     Orchestrate a complete multi-panel QC or analysis visualisation for \
     a given processing stage.
@@ -291,7 +300,7 @@ def plot_stage(
     dict[str, plt.Figure | plotly.graph_objects.Figure]
         Mapping from panel name to the generated figure(s).
     """
-    figs: Dict[str, Union[plt.Figure, "plotly.graph_objects.Figure"]] = {}
+    figs: Dict[str, Union[MplFigure, "PlotlyFigure"]] = {}
 
     # Metadata alignment
     if metadata is not None:
@@ -300,6 +309,9 @@ def plot_stage(
         metadata = metadata.reindex(M.columns)
         if metadata.isna().any().any():
             raise ValueError("metadata contains NaN after alignment")
+    else:
+        if stage == "qc":
+            raise ValueError("metadata is required for QC stage")
 
     # QC STAGE
     if stage == "qc":
@@ -320,7 +332,7 @@ def plot_stage(
         figs["missing"] = fig1
 
         # Mean M-value
-        fig2 = _new_fig((6, 5), dpi)
+        fig2 = _new_fig((10, 5), dpi)
         ax = fig2.add_subplot(111)
         mean_M = M.mean(axis=0)
         for group in metadata[groups_col].unique():
@@ -346,7 +358,7 @@ def plot_stage(
         figs["variance"] = fig3
 
         # Embedding
-        fig4 = _new_fig((7, 6), dpi)
+        fig4 = _new_fig((10, 6), dpi)
         ax = fig4.add_subplot(111)
         M_emb = M.fillna(M.mean(axis=1), axis=0).T
 
@@ -429,16 +441,17 @@ def plot_stage(
         if res is None:
             raise ValueError("res required")
         fig = _new_fig((12, 5), dpi)
-        ax1, ax2 = fig.subplots(1, 2)
+        ax_arr = fig.subplots(1, 2)
+        ax1, ax2 = ax_arr[0], ax_arr[1]
 
-        mean_expr = res.filter(like="meanM_").mean(axis=1)
+        mean_expr = res.filter(like="mean_").mean(axis=1)
         log_s2 = np.log2(np.maximum(res["s2"].values, np.finfo(float).eps))
         log_s2_post = np.log2(res["s2_post"].replace(0, np.finfo(float).eps))
 
         ax1.scatter(mean_expr, log_s2, alpha=0.3, s=10, label="Raw")
         ax1.scatter(mean_expr, log_s2_post, alpha=0.3, s=10, label="Moderated")
         ax1.set_xlabel("Mean M-value")
-        ax1.set_ylabel("log2(variance)")
+        ax1.set_ylabel("Log₂(variance)")
         ax1.set_title("Mean-Variance Trend")
         ax1.legend()
         ax1.grid(alpha=0.3)
@@ -565,12 +578,12 @@ def pca_plot(
     plt.title(title)
 
     handles = [
-        plt.Line2D(
+        Line2D(
             [],
             [],
             marker="o",
             color="w",
-            markerfacecolor=plt.cm.tab10(i / len(categories.cat.categories)),
+            markerfacecolor=cm.tab10(i / len(categories.cat.categories)),
             markersize=8,
         )
         for i in range(len(categories.cat.categories))
@@ -583,7 +596,7 @@ def pca_plot(
         loc="upper left",
     )
     plt.tight_layout()
-    plt.show()
+    plt.show()  # type: ignore[no-untyped-call]
 
 
 def plot_shrinkage_diagnostics(
@@ -591,7 +604,7 @@ def plot_shrinkage_diagnostics(
     s2_post: pd.Series,
     d0: Optional[float] = None,
     save_path: Optional[Union[str, Path]] = None,
-) -> plt.Figure:
+) -> MplFigure:
     """
     Visualise the effect of empirical Bayes variance shrinkage.
 
@@ -614,12 +627,12 @@ def plot_shrinkage_diagnostics(
     """
     s2 = np.asarray(s2, dtype=float)
     s2_post = np.asarray(s2_post, dtype=float)
-    fig = _new_fig((7, 5))
+    fig = _new_fig((10, 7))
     ax = fig.add_subplot(111)
     ax.scatter(np.log10(s2 + 1e-12), np.log10(s2_post + 1e-12), s=6, alpha=0.6)
     ax.plot(ax.get_xlim(), ax.get_xlim(), linestyle="--", color="k", alpha=0.6)
-    ax.set_xlabel("log10(original s2)")
-    ax.set_ylabel("log10(shrunk s2)")
+    ax.set_xlabel("Log₁₀(original s2)")
+    ax.set_ylabel("Log₁₀(shrunk s2)")
     if d0 is not None:
         ax.set_title(f"Shrinkage diagnostics (d0={d0:.2f})")
     else:
@@ -633,7 +646,7 @@ def plot_mean_difference(
     beta_group2: pd.DataFrame,
     top_n: int = 50,
     save_path: Optional[Union[str, Path]] = None,
-) -> plt.Figure:
+) -> MplFigure:
     """
     Bar plot of the largest absolute mean beta differences between two groups.
 
@@ -668,10 +681,10 @@ def plot_mean_difference(
 
 
 def pvalue_histogram(
-    pvals: Union[pd.Series, np.ndarray, List[float]],
+    pvals: Union[pd.Series, NDArray[np.float64], List[float]],
     bins: int = 50,
     save_path: Optional[Union[str, Path]] = None,
-) -> plt.Figure:
+) -> MplFigure:
     """
     Histogram of p-values with a flat null-expectation line for QC assessment.
 
@@ -690,15 +703,14 @@ def pvalue_histogram(
         Histogram figure.
     """
     p = np.asarray(pvals, dtype=float)
-    fig = _new_fig((6, 4))
-    ax = fig.add_subplot(111)
+    fig, ax = plt.subplots(figsize=(10, 7))
     ax.hist(p[~np.isnan(p)], bins=bins, density=False, alpha=0.8)
     ax.plot(
         [0, 1], [len(p[~np.isnan(p)]) / bins] * 2, color="k", linestyle="--", alpha=0.6
     )
-    ax.set_xlabel("p-value")
-    ax.set_ylabel("count")
-    ax.set_title("P-value histogram")
+    ax.set_xlabel("P-value")
+    ax.set_ylabel("Count")
+    ax.set_title("P-value Histogram")
     plt.tight_layout()
     return fig
 
@@ -712,7 +724,7 @@ def visualize_dms(
     heatmap: bool = True,
     sample_metadata: Optional[pd.DataFrame] = None,
     save_dir: Optional[Union[str, Path]] = None,
-) -> Dict[str, Optional[plt.Figure]]:
+) -> Dict[str, Optional[MplFigure]]:
     """
     Produce a standard set of summary plots for differentially methylated sites/regions.
 
@@ -738,7 +750,7 @@ def visualize_dms(
     dict[str, plt.Figure | None]
         Figures for "volcano", "manhattan", and "heatmap" (None if not generated).
     """
-    figs: Dict[str, Optional[plt.Figure]] = {
+    figs: Dict[str, Optional[MplFigure]] = {
         "volcano": None,
         "manhattan": None,
         "heatmap": None,
@@ -786,7 +798,7 @@ def visualize_dms(
                     alpha=0.6,
                 )
                 ax.set_xlabel("Genomic position (chr concatenated)")
-                ax.set_ylabel("-log10(p-value)")
+                ax.set_ylabel("-Log₁₀(p-value)")
                 figs["manhattan"] = fig
                 if save_dir:
                     Path(save_dir).mkdir(parents=True, exist_ok=True)
@@ -836,7 +848,7 @@ def methylation_expression_heatmap(
     sample_metadata: Optional[pd.DataFrame] = None,
     save_path: Optional[Union[str, Path]] = None,
     method: str = "pearson",
-) -> plt.Figure:
+) -> MplFigure:
     """
     Heatmap of methylation-expression correlation coefficients for selected genes/CpGs.
 

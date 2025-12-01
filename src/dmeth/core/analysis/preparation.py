@@ -99,6 +99,12 @@ def filter_cpgs_by_missingness(
     filtered = M.loc[keep]
     n_removed = len(M) - len(filtered)
     n_kept = len(filtered)
+
+    logger.info(
+        f"Filtered CpGs by missingness: filtered={filtered}, "
+        f"n_removed={n_removed}, n_kept={n_kept}"
+    )
+
     return filtered, n_removed, n_kept
 
 
@@ -153,6 +159,11 @@ def impute_missing_values(
         X = imputer.fit_transform(X.T if use_sample_knn else X)
         if use_sample_knn:
             X = X.T
+
+    logger.info(
+        f"Imputed missing values: method={method:}, k={k}, "
+        f"use_sample_knn={bool(use_sample_knn)}"
+    )
 
     return pd.DataFrame(X, index=M.index, columns=M.columns)
 

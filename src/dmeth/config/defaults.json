@@ -4,206 +4,564 @@
             "name": "HumanMethylation27",
             "manufacturer": "Illumina",
             "n_cpgs": 27578,
-            "cost_per_sample": 250,
+            "cost_per_sample": 180,
             "processing_days": 5,
             "dna_required_ng": 500,
             "coverage": "Gene promoters",
             "release_year": 2008,
             "status": "Discontinued",
-            "recommended": false
+            "recommended": false,
+            "notes": "Legacy platform, no longer commercially available"
         },
         "450K": {
             "name": "HumanMethylation450",
             "manufacturer": "Illumina",
             "n_cpgs": 485512,
-            "cost_per_sample": 400,
+            "cost_per_sample": 320,
             "processing_days": 7,
             "dna_required_ng": 500,
             "coverage": "Genome-wide",
             "release_year": 2011,
             "status": "Mature",
-            "recommended": true
+            "recommended": false,
+            "notes": "Being phased out in favor of EPIC arrays"
         },
         "EPIC": {
-            "name": "MethylationEPIC",
+            "name": "MethylationEPIC v1.0",
             "manufacturer": "Illumina",
             "n_cpgs": 866895,
-            "cost_per_sample": 500,
-            "processing_days": 7,
+            "cost_per_sample": 425,
+            "processing_days": 8,
             "dna_required_ng": 500,
             "coverage": "Enhanced genome-wide",
             "release_year": 2016,
             "status": "Current standard",
-            "recommended": true
+            "recommended": true,
+            "notes": "Most widely used platform, excellent reproducibility"
         },
-        "scEPIC": {
-            "name": "Single-Cell Methylation EPIC",
-            "manufacturer": "Illumina / Adapted",
-            "n_cpgs": 866895,
+        "EPICv2": {
+            "name": "MethylationEPIC v2.0",
+            "manufacturer": "Illumina",
+            "n_cpgs": 935000,
+            "cost_per_sample": 475,
+            "processing_days": 8,
+            "dna_required_ng": 500,
+            "coverage": "Enhanced genome-wide with improved content",
+            "release_year": 2022,
+            "status": "Latest generation",
+            "recommended": true,
+            "notes": "Improved CpG coverage, enhanced mobile element detection"
+        },
+        "Mouse_EPIC": {
+            "name": "Mouse Methylation Array",
+            "manufacturer": "Illumina",
+            "n_cpgs": 285000,
+            "cost_per_sample": 380,
+            "processing_days": 8,
+            "dna_required_ng": 500,
+            "coverage": "Mouse genome-wide",
+            "release_year": 2022,
+            "status": "Current",
+            "recommended": true,
+            "notes": "Designed for mouse studies, validated in multiple strains"
+        },
+        "WGBS": {
+            "name": "Whole Genome Bisulfite Sequencing",
+            "manufacturer": "Illumina (Sequencing)",
+            "n_cpgs": 28000000,
             "cost_per_sample": 1200,
-            "processing_days": 10,
-            "dna_required_ng": 50,
-            "coverage": "Single-cell enhanced genome-wide",
-            "release_year": 2021,
-            "status": "Emerging",
-            "recommended": false
-        },
-        "nanoSeq": {
-            "name": "Nanopore Methylation Sequencing",
-            "manufacturer": "Oxford Nanopore",
-            "n_cpgs": 30000000,
-            "cost_per_sample": 1500,
-            "processing_days": 5,
+            "processing_days": 12,
             "dna_required_ng": 1000,
-            "coverage": "Whole genome",
-            "release_year": 2020,
-            "status": "Current standard",
-            "recommended": true
+            "coverage": "Whole genome at base resolution",
+            "release_year": 2008,
+            "status": "Gold standard",
+            "recommended": true,
+            "notes": "30X coverage typical, highest resolution but expensive"
+        },
+        "RRBS": {
+            "name": "Reduced Representation Bisulfite Sequencing",
+            "manufacturer": "Illumina (Sequencing)",
+            "n_cpgs": 4000000,
+            "cost_per_sample": 450,
+            "processing_days": 10,
+            "dna_required_ng": 500,
+            "coverage": "CpG islands and promoters enriched",
+            "release_year": 2010,
+            "status": "Cost-effective alternative",
+            "recommended": true,
+            "notes": "Good balance of coverage and cost for regulatory regions"
+        },
+        "EM-seq": {
+            "name": "Enzymatic Methyl-seq",
+            "manufacturer": "NEB / Illumina",
+            "n_cpgs": 28000000,
+            "cost_per_sample": 980,
+            "processing_days": 10,
+            "dna_required_ng": 500,
+            "coverage": "Whole genome enzymatic conversion",
+            "release_year": 2019,
+            "status": "Emerging standard",
+            "recommended": true,
+            "notes": "Less DNA damage than bisulfite, better for FFPE samples"
+        },
+        "Nanopore": {
+            "name": "Nanopore Direct Methylation Sequencing",
+            "manufacturer": "Oxford Nanopore",
+            "n_cpgs": 28000000,
+            "cost_per_sample": 850,
+            "processing_days": 5,
+            "dna_required_ng": 2000,
+            "coverage": "Long-read whole genome",
+            "release_year": 2019,
+            "status": "Rapidly evolving",
+            "recommended": true,
+            "notes": "Native methylation detection, long reads, phasing capability"
+        },
+        "scBS-seq": {
+            "name": "Single-Cell Bisulfite Sequencing",
+            "manufacturer": "Various protocols",
+            "n_cpgs": 3000000,
+            "cost_per_sample": 180,
+            "processing_days": 14,
+            "dna_required_ng": 0.01,
+            "coverage": "Single-cell genome-wide",
+            "release_year": 2014,
+            "status": "Research use",
+            "recommended": false,
+            "notes": "Per-cell cost; typical study needs 100-1000 cells; sparse coverage"
+        },
+        "Targeted_BS": {
+            "name": "Targeted Bisulfite Sequencing",
+            "manufacturer": "Custom (Illumina/Twist)",
+            "n_cpgs": 50000,
+            "cost_per_sample": 220,
+            "processing_days": 10,
+            "dna_required_ng": 200,
+            "coverage": "Custom targeted regions",
+            "release_year": 2015,
+            "status": "Application-specific",
+            "recommended": true,
+            "notes": "Deep coverage of specific loci, cost-effective for validation"
         }
     },
     "designs": {
         "two_group": {
             "name": "Two-Group Comparison",
-            "description": "Compare two independent groups",
+            "description": "Compare two independent groups (e.g., case vs control, treated vs untreated)",
             "n_groups": 2,
             "paired": false,
             "complexity": "Simple",
-            "min_n_recommended": 12,
+            "min_n_recommended": 15,
             "power_adjustment": 1.0,
-            "analysis_method": "Two-sample t-test / Linear model",
-            "example_uses": ["Tumor vs Normal", "Treatment vs Control"]
+            "analysis_method": "Linear regression with age/sex/batch covariates",
+            "example_uses": [
+                "Cancer vs normal tissue",
+                "Disease cases vs healthy controls",
+                "Exposed vs unexposed populations",
+                "Treatment vs placebo"
+            ]
         },
         "paired": {
-            "name": "Paired Design",
-            "description": "Compare matched samples",
+            "name": "Paired/Matched Design",
+            "description": "Compare matched or repeated-measures samples from same subjects",
             "n_groups": 2,
             "paired": true,
             "complexity": "Simple",
-            "min_n_recommended": 10,
+            "min_n_recommended": 12,
             "power_adjustment": 0.71,
-            "analysis_method": "Paired t-test / Linear mixed model",
-            "example_uses": ["Pre-treatment vs Post-treatment", "Matched tumor-normal"]
+            "analysis_method": "Linear mixed model or paired analysis with subject random effects",
+            "example_uses": [
+                "Pre-treatment vs post-treatment in same patients",
+                "Tumor-adjacent normal pairs",
+                "Longitudinal timepoint studies",
+                "Intervention studies with baseline measurements"
+            ]
         },
-        "factorial": {
-            "name": "Factorial / Multi-group Design",
-            "description": "Compare more than two groups or multiple factors",
+        "multi_group": {
+            "name": "Multi-Group Comparison",
+            "description": "Compare three or more independent groups",
             "n_groups": 3,
             "paired": false,
             "complexity": "Intermediate",
+            "min_n_recommended": 12,
+            "power_adjustment": 1.15,
+            "analysis_method": "ANOVA-style linear models with post-hoc contrasts",
+            "example_uses": [
+                "Multiple disease subtypes",
+                "Dose-response studies (low/medium/high)",
+                "Multiple tissue types",
+                "Disease progression stages"
+            ]
+        },
+        "factorial_2x2": {
+            "name": "2×2 Factorial Design",
+            "description": "Two factors with two levels each (e.g., disease × sex, treatment × genotype)",
+            "n_groups": 4,
+            "paired": false,
+            "complexity": "Intermediate",
+            "min_n_recommended": 10,
+            "power_adjustment": 1.25,
+            "analysis_method": "Two-way ANOVA with interaction terms",
+            "example_uses": [
+                "Disease status by sex interactions",
+                "Treatment by genotype interactions",
+                "Exposure by age group interactions",
+                "Drug A vs Drug B in two populations"
+            ]
+        },
+        "time_series": {
+            "name": "Longitudinal Time Series",
+            "description": "Multiple timepoints measured in same subjects over time",
+            "n_groups": 1,
+            "paired": true,
+            "complexity": "Advanced",
             "min_n_recommended": 8,
-            "power_adjustment": 0.8,
-            "analysis_method": "ANOVA / Linear model",
-            "example_uses": ["Dose-response studies", "Multi-arm trials"]
+            "power_adjustment": 0.65,
+            "analysis_method": "Linear mixed models with time as continuous or categorical predictor",
+            "example_uses": [
+                "Aging studies with multiple timepoints",
+                "Disease progression monitoring",
+                "Treatment response trajectories",
+                "Developmental studies"
+            ]
+        },
+        "case_control_matched": {
+            "name": "Matched Case-Control",
+            "description": "Cases matched to controls on key confounders (age, sex, batch)",
+            "n_groups": 2,
+            "paired": true,
+            "complexity": "Intermediate",
+            "min_n_recommended": 20,
+            "power_adjustment": 0.85,
+            "analysis_method": "Conditional logistic regression or stratified analysis",
+            "example_uses": [
+                "Epidemiological case-control studies",
+                "Matched tumor-normal with age/sex matching",
+                "Nested case-control in cohort studies"
+            ]
+        },
+        "discovery_replication": {
+            "name": "Discovery-Replication Design",
+            "description": "Two-stage design with discovery cohort and independent replication",
+            "n_groups": 2,
+            "paired": false,
+            "complexity": "Advanced",
+            "min_n_recommended": 30,
+            "power_adjustment": 1.4,
+            "analysis_method": "Multi-stage testing with replication-based validation",
+            "example_uses": [
+                "EWAS with replication cohort",
+                "Biomarker discovery and validation",
+                "Multi-site studies with technical replication"
+            ]
+        },
+        "cell_type_deconv": {
+            "name": "Cell Type Heterogeneity Design",
+            "description": "Bulk tissue with cell type proportion estimation or flow-sorted populations",
+            "n_groups": 2,
+            "paired": false,
+            "complexity": "Advanced",
+            "min_n_recommended": 25,
+            "power_adjustment": 1.3,
+            "analysis_method": "Cell type deconvolution (e.g., IDOL, EpiDISH) + adjusted DMR analysis",
+            "example_uses": [
+                "Whole blood with immune cell correction",
+                "Brain tissue with neuronal/glial proportions",
+                "Tumor with infiltration adjustment",
+                "Flow-sorted cell populations"
+            ]
         }
     },
     "cost_components": {
         "dna_extraction": {
-            "cost": 50,
+            "cost": 45,
             "unit": "per_sample",
-            "description": "Genomic DNA extraction from tissue or cells",
+            "description": "DNA extraction from tissue/blood (includes kit costs and labor)",
             "optional": false,
-            "applies_to": ["all"]
+            "applies_to": null
         },
-        "quality_control": {
-            "cost": 30,
+        "dna_extraction_ffpe": {
+            "cost": 85,
             "unit": "per_sample",
-            "description": "QC of DNA or libraries",
-            "optional": false,
-            "applies_to": ["all"]
-        },
-        "bioinformatics": {
-            "cost": 100,
-            "unit": "per_sample",
-            "description": "Data preprocessing, normalization, and analysis",
-            "optional": false,
-            "applies_to": ["all"]
-        },
-        "storage": {
-            "cost": 0.000001,
-            "unit": "per_cpg",
-            "description": "Cloud or local data storage",
+            "description": "DNA extraction from FFPE tissue (more labor-intensive)",
             "optional": true,
             "applies_to": null
         },
-        "library_prep": {
-            "cost": 200,
+        "quality_control": {
+            "cost": 25,
             "unit": "per_sample",
-            "description": "Library preparation for sequencing-based assays",
-            "optional": true,
-            "applies_to": ["nanoSeq", "scEPIC"]
+            "description": "DNA QC (Qubit quantification, gel/bioanalyzer quality check)",
+            "optional": false,
+            "applies_to": null
         },
-        "shipping": {
-            "cost": 20,
+        "bisulfite_conversion": {
+            "cost": 35,
             "unit": "per_sample",
-            "description": "Sample transport",
+            "description": "Bisulfite conversion for array or sequencing (kit + labor)",
+            "optional": false,
+            "applies_to": ["27K", "450K", "EPIC", "EPICv2", "Mouse_EPIC", "WGBS", "RRBS", "scBS-seq", "Targeted_BS"]
+        },
+        "library_prep_wgbs": {
+            "cost": 280,
+            "unit": "per_sample",
+            "description": "WGBS library preparation (post-bisulfite)",
             "optional": true,
-            "applies_to": ["all"]
+            "applies_to": ["WGBS"]
+        },
+        "library_prep_rrbs": {
+            "cost": 180,
+            "unit": "per_sample",
+            "description": "RRBS library prep with MspI digestion and size selection",
+            "optional": true,
+            "applies_to": ["RRBS"]
+        },
+        "library_prep_emseq": {
+            "cost": 320,
+            "unit": "per_sample",
+            "description": "EM-seq enzymatic conversion and library prep",
+            "optional": true,
+            "applies_to": ["EM-seq"]
+        },
+        "library_prep_nanopore": {
+            "cost": 220,
+            "unit": "per_sample",
+            "description": "Nanopore library preparation (native DNA prep)",
+            "optional": true,
+            "applies_to": ["Nanopore"]
+        },
+        "sequencing_novaseq": {
+            "cost": 850,
+            "unit": "per_sample",
+            "description": "NovaSeq 6000 sequencing (30X WGBS or equivalent)",
+            "optional": true,
+            "applies_to": ["WGBS", "EM-seq"]
+        },
+        "sequencing_nextseq": {
+            "cost": 320,
+            "unit": "per_sample",
+            "description": "NextSeq sequencing (RRBS or targeted)",
+            "optional": true,
+            "applies_to": ["RRBS", "Targeted_BS"]
+        },
+        "sequencing_nanopore": {
+            "cost": 450,
+            "unit": "per_sample",
+            "description": "Nanopore PromethION sequencing (20X coverage)",
+            "optional": true,
+            "applies_to": ["Nanopore"]
+        },
+        "batch_correction": {
+            "cost": 15,
+            "unit": "per_sample",
+            "description": "Technical replicate or batch plate for correction",
+            "optional": true,
+            "applies_to": null
+        },
+        "bioinformatics_array": {
+            "cost": 80,
+            "unit": "per_sample",
+            "description": "Array preprocessing, normalization, QC, and basic stats",
+            "optional": false,
+            "applies_to": ["27K", "450K", "EPIC", "EPICv2", "Mouse_EPIC"]
+        },
+        "bioinformatics_wgbs": {
+            "cost": 180,
+            "unit": "per_sample",
+            "description": "WGBS alignment, methylation calling, filtering (compute-intensive)",
+            "optional": false,
+            "applies_to": ["WGBS", "EM-seq", "RRBS", "Targeted_BS"]
+        },
+        "bioinformatics_nanopore": {
+            "cost": 120,
+            "unit": "per_sample",
+            "description": "Nanopore basecalling, alignment, methylation calling",
+            "optional": false,
+            "applies_to": ["Nanopore"]
+        },
+        "dmr_analysis": {
+            "cost": 1500,
+            "unit": "fixed",
+            "description": "DMR calling, annotation, pathway analysis (per study)",
+            "optional": false,
+            "applies_to": null
+        },
+        "cell_type_deconvolution": {
+            "cost": 800,
+            "unit": "fixed",
+            "description": "Cell type deconvolution and adjusted analysis",
+            "optional": true,
+            "applies_to": null
+        },
+        "storage_array": {
+            "cost": 0.000002,
+            "unit": "per_cpg",
+            "description": "Cloud storage for array data (3 years, S3 standard)",
+            "optional": true,
+            "applies_to": ["27K", "450K", "EPIC", "EPICv2", "Mouse_EPIC"]
+        },
+        "storage_sequencing": {
+            "cost": 0.0000008,
+            "unit": "per_cpg",
+            "description": "Cloud storage for sequencing data (3 years, S3 Glacier)",
+            "optional": true,
+            "applies_to": ["WGBS", "EM-seq", "RRBS", "Nanopore", "Targeted_BS"]
+        },
+        "sample_shipping": {
+            "cost": 35,
+            "unit": "per_sample",
+            "description": "Cold-chain shipping to core facility (dry ice)",
+            "optional": true,
+            "applies_to": null
+        },
+        "project_management": {
+            "cost": 2500,
+            "unit": "fixed",
+            "description": "Project coordination, reporting, and communication",
+            "optional": true,
+            "applies_to": null
+        },
+        "publication_support": {
+            "cost": 3500,
+            "unit": "fixed",
+            "description": "Manuscript preparation, figure generation, method writing",
+            "optional": true,
+            "applies_to": null
         }
     },
     "timeline_phases": {
-        "planning_irb": {
-            "name": "IRB and Study Planning",
-            "base_duration_days": 30,
+        "study_design": {
+            "name": "Study Design & Power Analysis",
+            "base_duration_days": 14,
             "scaling_factor": 0.0,
             "batch_adjustment": 0.0,
-            "description": "Institutional approval and study design",
+            "description": "Design finalization, power calculations, budget planning",
+            "critical": true,
+            "optional": false,
+            "parallelizable": false
+        },
+        "ethics_irb": {
+            "name": "Ethics/IRB Approval",
+            "base_duration_days": 45,
+            "scaling_factor": 0.0,
+            "batch_adjustment": 0.0,
+            "description": "Institutional review board approval, consent forms, protocols",
             "critical": true,
             "optional": false,
             "parallelizable": false
         },
         "sample_collection": {
-            "name": "Sample Collection",
-            "base_duration_days": 14,
-            "description": "Collection of tissue or cell samples",
+            "name": "Sample Collection/Retrieval",
+            "base_duration_days": 30,
+            "scaling_factor": 0.15,
+            "batch_adjustment": 0.0,
+            "description": "Prospective collection or biobank retrieval",
             "critical": true,
             "optional": false,
             "parallelizable": false
         },
-        "dna_extraction": {
-            "name": "DNA Extraction",
-            "base_duration_days": 5,
-            "critical": false,
+        "sample_processing": {
+            "name": "Sample Processing & DNA Extraction",
+            "base_duration_days": 7,
+            "scaling_factor": 0.08,
+            "batch_adjustment": 2.0,
+            "description": "Tissue processing, DNA extraction, QC",
+            "critical": true,
             "optional": false,
+            "parallelizable": true
+        },
+        "bisulfite_conversion": {
+            "name": "Bisulfite Conversion",
+            "base_duration_days": 3,
+            "scaling_factor": 0.02,
+            "batch_adjustment": 1.0,
+            "description": "Sodium bisulfite treatment and cleanup",
+            "critical": false,
+            "optional": true,
             "parallelizable": true
         },
         "library_prep": {
             "name": "Library Preparation",
-            "base_duration_days": 3,
+            "base_duration_days": 5,
+            "scaling_factor": 0.05,
+            "batch_adjustment": 1.5,
+            "description": "Sequencing library construction and QC",
             "critical": false,
             "optional": true,
             "parallelizable": true
         },
-        "array_processing": {
-            "name": "Array Processing",
-            "base_duration_days": 7,
+        "array_hybridization": {
+            "name": "Array Hybridization & Scanning",
+            "base_duration_days": 4,
+            "scaling_factor": 0.03,
+            "batch_adjustment": 3.0,
+            "description": "BeadChip hybridization, washing, staining, scanning",
             "critical": false,
-            "optional": false,
+            "optional": true,
             "parallelizable": true
         },
-        "sequencing": {
+        "sequencing_run": {
             "name": "Sequencing Run",
-            "base_duration_days": 2,
+            "base_duration_days": 3,
+            "scaling_factor": 0.01,
+            "batch_adjustment": 2.0,
+            "description": "Illumina or Nanopore sequencing run",
             "critical": false,
             "optional": true,
             "parallelizable": true
         },
-        "analysis": {
-            "name": "Data Analysis",
-            "base_duration_days": 14,
+        "data_qc": {
+            "name": "Data QC & Preprocessing",
+            "base_duration_days": 7,
+            "scaling_factor": 0.06,
+            "batch_adjustment": 0.0,
+            "description": "Quality control, normalization, batch correction",
             "critical": true,
             "optional": false,
             "parallelizable": false
         },
-        "reporting": {
-            "name": "Reporting / Submission",
-            "base_duration_days": 7,
+        "statistical_analysis": {
+            "name": "Statistical Analysis",
+            "base_duration_days": 21,
+            "scaling_factor": 0.04,
+            "batch_adjustment": 0.0,
+            "description": "DMR calling, annotation, pathway analysis, visualization",
+            "critical": true,
+            "optional": false,
+            "parallelizable": false
+        },
+        "validation": {
+            "name": "Technical Validation",
+            "base_duration_days": 14,
+            "scaling_factor": 0.0,
+            "batch_adjustment": 0.0,
+            "description": "Pyrosequencing or targeted validation of top hits",
             "critical": false,
             "optional": true,
             "parallelizable": false
+        },
+        "manuscript_prep": {
+            "name": "Manuscript Preparation",
+            "base_duration_days": 30,
+            "scaling_factor": 0.0,
+            "batch_adjustment": 0.0,
+            "description": "Figure generation, writing, co-author review",
+            "critical": false,
+            "optional": true,
+            "parallelizable": false
+        },
+        "data_deposition": {
+            "name": "Data Deposition",
+            "base_duration_days": 7,
+            "scaling_factor": 0.02,
+            "batch_adjustment": 0.0,
+            "description": "GEO/ArrayExpress submission, metadata preparation",
+            "critical": false,
+            "optional": true,
+            "parallelizable": true
         }
     },
     "global_settings": {
-        "contingency_buffer_percent": 15,
-        "default_mcp_method": "bonferroni"
+        "contingency_buffer_percent": 20,
+        "default_mcp_method": "fdr"
     }
 }

@@ -62,6 +62,7 @@ def load_processed_data(path: Union[str, Path], trusted: bool = False) -> Proces
     if path.suffix.lower() in (".pkl", ".pickle"):
         if trusted:
             return pd.read_pickle(path)  # nosec B301
+            logger.info(f"ProcessedData object loaded from {path}")
         else:
             ValueError("Pickle files are not supported for untrusted input")
     elif path.suffix.lower() in (".h5", ".hdf5"):
@@ -70,6 +71,7 @@ def load_processed_data(path: Union[str, Path], trusted: bool = False) -> Proces
             pheno = store["pheno"]
             ann = store.get("ann", pd.DataFrame(index=M.index))
         return ProcessedData(M=M, pheno=pheno, ann=ann)
+        logger.info(f"ProcessedData object loaded from {path}")
     else:
         raise ValueError("Unsupported load format; must be .pkl or .h5")
 
