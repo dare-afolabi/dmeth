@@ -2632,8 +2632,8 @@ If you use `dmeth` in your research, please cite:
   version = {0.1.1},
   year = {2025},
   publisher = {GitHub},
-  doi = {10.5281/zenodo.17685513},
-  url = {https://doi.org/10.5281/zenodo.17685513},
+  doi = {10.5281/zenodo.17777501},
+  url = {https://doi.org/10.5281/zenodo.17777501},
 ```
 
 ### References
