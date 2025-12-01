@@ -165,7 +165,7 @@ class TestConfigManager:
         assert "per_sample" in result
         assert "components" in result
         assert result["total"] > 0
-assert "n_per_group" in result
+        assert "n_per_group" in result
         assert "total_samples" in result
         assert result["n_per_group"] > 0
 

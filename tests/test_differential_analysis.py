@@ -732,5 +732,8 @@ class TestAnalysisValidation:
             "B",
         ]  # each subject has two samples but group sums are 0 and 2
         with pytest.raises(ValueError):
-            validate_alignment(data=data, design_matrix=design, paired_ids=paired_ids)
-      validate_alignment(data=data, design_matrix=design, paired_ids=paired_ids)
+            validate_alignment(
+                data=data,
+                design_matrix=design,
+                paired_ids=paired_ids
+            )

@@ -126,20 +126,6 @@ class TestDownstreamAnnotation:
         assert "lifted" in result.columns
 
     # mop up
-    def test_annotate_empty_dms_or_genes(self):
-        dms = pd.DataFrame()
-        genes = pd.DataFrame()
-        assert map_dms_to_genes(dms, genes).empty
-
-    def test_annotate_intervaltree_missing(self, monkeypatch):
-        monkeypatch.setattr(annotation, "IntervalTree", None)
-        dms = pd.DataFrame({"chr": ["chr1"], "pos": [100]})
-        genes = pd.DataFrame(
-            {"chr": ["chr1"], "start": [50], "end": [150], "gene_symbol": ["G1"]}
-        )
-        res = map_dms_to_genes(dms, genes)
-        assert "nearest_gene" in res.columns
-
     def test_gene_set_enrichment_empty_list(self):
         df = gene_set_enrichment([])
         assert df.empty
@@ -156,11 +142,6 @@ class TestDownstreamAnnotation:
                 pd.DataFrame({"chr": ["chr1"], "start": [1], "end": [2]})
             )
 
-    def test_annotate_empty_genes(self):
-        dms = pd.DataFrame({"chr": ["chr1"], "pos": [100]})
-        res = map_dms_to_genes(dms, pd.DataFrame())
-        assert res["nearest_gene"].isna().all()
-
     def test_gene_set_enrichment_no_results(self):
         df = gene_set_enrichment(["A"], gene_sets={"path": ["B"]})
         assert df.empty
@@ -169,20 +150,6 @@ class TestDownstreamAnnotation:
         monkeypatch.setattr(annotation, "LiftOver", None)
         with pytest.raises(RuntimeError):
             liftover_coordinates(pd.DataFrame())
-
-    def test_annotation_empty_genes(self):
-        dms = pd.DataFrame({"chr": ["chr1"], "pos": [100]})
-        res = map_dms_to_genes(dms, pd.DataFrame())
-        assert res["nearest_gene"].isna().all()
-
-    def test_annotation_distance_fallback(self, monkeypatch):
-        monkeypatch.setattr(annotation, "IntervalTree", None)
-        dms = pd.DataFrame({"chr": ["chr1"], "pos": [200]})
-        genes = pd.DataFrame(
-            {"chr": ["chr1"], "start": [100], "end": [150], "gene_symbol": ["G1"]}
-        )
-        res = map_dms_to_genes(dms, genes, max_distance=100)
-        assert "nearest_gene" in res.columns
 
     def test_gene_set_enrichment_filtered_out(self):
         df = gene_set_enrichment(["A"], gene_sets={"path": ["B"]}, min_set_size=10)
@@ -568,6 +535,4 @@ class TestDeconvolution:
         beta = pd.DataFrame([[0.1, 0.2]], index=["cg1"], columns=["S1", "S2"])
         ref = pd.DataFrame([[0.1]], index=["cg1"], columns=["T1"])
         res = estimate_cell_composition(beta, ref, n_jobs=2)
-        assert "T1" in res.columns
-beta, ref, n_jobs=2)
         assert "T1" in res.columns

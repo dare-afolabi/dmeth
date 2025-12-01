@@ -566,48 +566,10 @@ class TestIOMopup:
         monkeypatch.setattr(writers, "h5py", None)
         pytest.importorskip("tables")
         outp = writers.export_idat_hdf5(
-            beta, mvals=None, sample_sheet=sample_sheet, filepath=fp, compress=False
+            beta,
+            mvals=None,
+            sample_sheet=sample_sheet,
+            filepath=fp,
+            compress=False
         )
         assert outp.exists()
-mp_path / "out.pkl"
-        writers.save_processed_data(data, outp, format="pkl")
-        assert outp.exists()
-
-        # HDF5
-        pytest.importorskip("tables")
-        outh = tmp_path / "out.h5"
-        writers.save_processed_data(data, outh, format="hdf5")
-        assert outh.exists()
-
-        # suffix handling
-        wrong = tmp_path / "wrong.txt"
-        writers.save_processed_data(data, wrong, format="csv")
-        assert wrong.with_suffix(".csv").exists()
-
-    def test_export_idat_hdf5_fallback_and_report(self, tmp_path, monkeypatch):
-        beta = pd.DataFrame(
-            np.random.rand(4, 2),
-            index=[f"cg{i}" for i in range(4)],
-            columns=["s1", "s2"],
-        )
-        sample_sheet = pd.DataFrame({"age": [10, 20]}, index=["s1", "s2"])
-        fp = tmp_path / "idat.h5"
-
-        # Force writers.h5py to None to test pandas.HDFStore fallback
-        monkeypatch.setattr(writers, "h5py", None)
-        pytest.importorskip("tables")
-        outp = writers.export_idat_hdf5(
-            beta, mvals=None, sample_sheet=sample_sheet, filepath=fp, compress=False
-        )
-        assert outp.exists()
-
-        # Report generation
-        fig, ax = plt.subplots()
-        ax.plot([1, 2, 3], [1, 4, 9])
-        summary = {"n": 3, "desc": "test"}
-        plots = {"plot1": fig}
-        rpt = tmp_path / "report.html"
-        out = writers.create_analysis_report(summary, plots, outpath=rpt, title="T")
-        assert out.exists()
-        content = out.read_text(encoding="utf-8")
-        assert "Methylation Analysis Report" in content or "T" in content
