@@ -130,7 +130,7 @@ class GlobalSettingsSchema(BaseModel):
     """Global configuration settings."""
 
     contingency_buffer_percent: float = Field(10.0, ge=0.0, le=100.0)
-    default_mcp_method: str = Field("fdr", regex="^(bonferroni|fdr|none)$")
+    default_mcp_method: str = Field("fdr", pattern="^(bonferroni|fdr|none)$")
 
 
 class PlannerConfigModel(BaseModel):
