@@ -25,7 +25,7 @@ def get_version() -> str:
     return m.group(1)
 
 
-def get_latest_tag() -> str | None:
+def get_latest_tag() -> str:
     try:
         return subprocess.check_output(
             ["git", "describe", "--tags", "--abbrev=0"], text=True
@@ -34,7 +34,7 @@ def get_latest_tag() -> str | None:
         return None
 
 
-def get_commits(since_tag: str | None) -> list[str]:
+def get_commits(since_tag: str) -> list[str]:
     cmd = ["git", "log", "--pretty=format:%h %s"]
     if since_tag:
         cmd.insert(2, f"{since_tag}..HEAD")
