@@ -107,7 +107,7 @@ class CostComponentSchema(BaseModel):
     """Configuration schema for cost components."""
 
     cost: float = Field(..., ge=0.0)
-    unit: str = Field(..., regex="^(per_sample|per_cpg|fixed)$")
+    unit: str = Field(..., pattern="^(per_sample|per_cpg|fixed)$")
     description: Optional[str] = None
     optional: bool = False
     applies_to: Optional[List[str]] = None
