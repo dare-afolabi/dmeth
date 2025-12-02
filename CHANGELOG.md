@@ -13,3 +13,6 @@ All notable changes to this project will be documented here.
 
 ## 0.2.0 - 2025-12-01
 - 880c5f5: Fixed bugs across the codebase; Added a demo notebook; Renamed 2 functions to reflect actual functionality; Updated docs etc to reflect these.
+
+## 0.2.0 - 2025-12-02
+- 7254afd Add paired TCGA-LUAD dmeth vs limma benchmark notebook and data container; Renamed demo pipeline notebook for clarity.
