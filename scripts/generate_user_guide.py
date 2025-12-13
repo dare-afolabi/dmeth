@@ -35,23 +35,23 @@ README_PATH = PROJECT_ROOT / "README.md"
 OUTPUT_PATH = PROJECT_ROOT / "docs" / "UserGuide.md"
 
 TOP_LEVEL_PACKAGES = [
-    "dmeth.core.data_preprocessing",
     "dmeth.core.planner",
+    "dmeth.io",
+    "dmeth.core.data_preprocessing",
     "dmeth.core.analysis",
     "dmeth.core.downstream",
-    "dmeth.config",
-    "dmeth.io",
     "dmeth.utils",
+    "dmeth.config",
 ]
 
 PACKAGE_DISPLAY_NAMES = {
-    "dmeth.core.data_preprocessing": "Preprocessing Utilities",
     "dmeth.core.planner": "Study Planning",
+    "dmeth.io": "Input/Output",
+    "dmeth.core.data_preprocessing": "Preprocessing Utilities",
     "dmeth.core.analysis": "Core Differential Analysis",
     "dmeth.core.downstream": "Downstream Analysis",
-    "dmeth.config": "Configuration",
-    "dmeth.io": "Input/Output",
     "dmeth.utils": "Utilities",
+    "dmeth.config": "Configuration",
 }
 
 TOP_SECTIONS = ["Installation", "Quick Start", "Key Features"]
@@ -108,7 +108,7 @@ def clean_docstring(doc: Optional[str]) -> str:
         "See Also",
     ]
     for sec in section_headers:
-        text = re.sub(rf"^{sec}\s*\n[-=]+\s*$", f"### {sec}", text, flags=re.MULTILINE)
+        text = re.sub(rf"^{sec}\s*\n[-=]+\s*$", f"#### {sec}", text, flags=re.MULTILINE)
 
     # Convert "param : type" lines to bullets
     text = re.sub(r"^(\w+)\s*:\s*(.+)$", r"- **\1**: `\2`", text, flags=re.MULTILINE)
@@ -276,6 +276,7 @@ def generate_user_guide() -> str:
         for name, obj in sorted(get_public_members(pkg)):
             sig = get_clean_signature(obj)
             out.append("\n---\n")
+            out.append(f"### `{name}`\n\n")
             out.append(f"`{name}{sig}`\n\n")
             out.append(clean_docstring(obj.__doc__ or "") + "\n")
 
@@ -290,6 +291,7 @@ def generate_user_guide() -> str:
             for name, obj in sorted(get_public_members(mod)):
                 sig = get_clean_signature(obj)
                 out.append("\n---\n")
+                out.append(f"### `{name}`\n\n")
                 out.append(f"`{name}{sig}`\n\n")
                 out.append(clean_docstring(obj.__doc__ or "") + "\n")
 
