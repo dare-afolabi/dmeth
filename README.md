@@ -63,23 +63,34 @@ beta_imp = impute_missing_values(beta_clean, method="knn", k=10)
 
 # 3. Differential analysis (case vs control)
 # Build design matrix from phenotype
-design = validate_design(pheno["group"])
-contrast = validate_contrast(design, "case-control")
+design = build_design(pheno["group"], categorical=["group"])
+contrast = [0] * (design.shape[1] - 1) + [1]
+contrast = validate_contrast(design, contrast)
 
-# Fit
+# Extract group labels
+group_labels = pd.Series(
+    np.where(design["group"], "B", "A"),
+    index=beta_imp.columns,
+    name="group",
+)
+
+# Fit - use fit_differential_chunked() for larger datasets
 res = fit_differential(
-    M=beta_imp,
-    design=pd.DataFrame(design, index=beta_imp.columns),
+    data=beta_imp,
+    design=design,
     contrast=contrast,
+    group_labels=group_labels,
     shrink="smyth",
     robust=True,
 )
 
 # 4. Discover DMRs
-annotation = pd.read_csv("cpg_annotation.csv", index_col=0)  # must include chr, pos columns
+ann = pd.read_csv("cpg_annotation.csv", index_col=0)  # must include chr, pos columns
 dmrs = find_dmrs_by_sliding_window(
     dms=res[res["padj"] < 0.05],
-    annotation=annotation,
+    annotation=ann,
+    chr_col="CHR",
+    pos_col="MAPINFO",
     max_gap=500,
     min_cpgs=3,
 )
